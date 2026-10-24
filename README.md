@@ -55,4 +55,10 @@ Scheduling uses a small documented local approximation. **It does not reproduce 
 swift test
 ```
 
-See [architecture](docs/architecture.md), [analysis and fidelity](docs/analysis.md), and [local REA workflow](docs/reproduce-analysis.md). No supplied IPA, original executable, extracted assets, or decompiled original code is published in this repository.
+See [architecture](docs/architecture.md), [analysis and fidelity](docs/analysis.md), [verification](docs/verification.md), and [local REA workflow](docs/reproduce-analysis.md). No supplied IPA, original executable, extracted assets, or decompiled original code is published in this repository.
+
+## Simulator captures
+
+Captured from the rebuilt app on an iPhone 16 Pro simulator.
+
+<img src="docs/screenshots/decks.png" width="240" alt="Deck list in the rebuilt iOS app"> <img src="docs/screenshots/answer.png" width="240" alt="Study answer with interval previews in the rebuilt iOS app">

@@ -1,0 +1,3369 @@
+{
+  "kind": "supplemental-native-method-inventory",
+  "canonical_rea_evidence": false,
+  "subject": {
+    "name": "AnkiMobile 25.09",
+    "executable_sha256": "591fcf587944031435c11cd977dd26b00306aaeb4854e1bfe17d54d233fdd459",
+    "image_base": "0x100000000"
+  },
+  "coverage": {
+    "objc_classlist_entries": 150,
+    "instance_methods": 626,
+    "limitations": [
+      "Runtime-visible Objective-C class/method metadata only. Pure Swift and Rust functions are not inventoried here.",
+      "Class-level parse success does not establish complete ABI or behavior recovery.",
+      "Method addresses identify bridge entries, which may be short thunks into Swift helpers."
+    ]
+  },
+  "classes": [
+    {
+      "name": "_TtC4anki17CollectionOptions",
+      "address": "0x101841fe0",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x10000458c"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1000054a0"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4ankiP33_84F4CB814CD6EE21D10382996A11FD4D22FilteredDeckController",
+      "address": "0x1018425f0",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x10000c024"
+        },
+        {
+          "selector": "accept",
+          "implementation": "0x10000c148"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10000c9b8"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10000ca18"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki11AppDelegate",
+      "address": "0x101842728",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x10000d820"
+        },
+        {
+          "selector": "application:didFinishLaunchingWithOptions:",
+          "implementation": "0x10000de08"
+        },
+        {
+          "selector": "onFiveMinuteTimer",
+          "implementation": "0x10000eb84"
+        },
+        {
+          "selector": "performAfterDelay:block:",
+          "implementation": "0x10000eca4"
+        },
+        {
+          "selector": "applicationWillResignActive:",
+          "implementation": "0x100011738"
+        },
+        {
+          "selector": "applicationDidEnterBackground:",
+          "implementation": "0x100011e74"
+        },
+        {
+          "selector": "applicationWillEnterForeground:",
+          "implementation": "0x1000122d0"
+        },
+        {
+          "selector": "applicationDidBecomeActive:",
+          "implementation": "0x10001231c"
+        },
+        {
+          "selector": "application:openURL:options:",
+          "implementation": "0x100012d64"
+        },
+        {
+          "selector": "application:performActionForShortcutItem:completionHandler:",
+          "implementation": "0x100012e88"
+        },
+        {
+          "selector": "interruption:",
+          "implementation": "0x1000132ac"
+        },
+        {
+          "selector": "iPhoneX",
+          "implementation": "0x100013344"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1000149dc"
+        }
+      ]
+    },
+    {
+      "name": "_TtCV4anki24BackendCardStatsResponseP33_716F4F55E8CDC32BF2794A1705665C1313_StorageClass",
+      "address": "0x1018685d0",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV4anki21BackendGraphsResponseP33_716F4F55E8CDC32BF2794A1705665C1313_StorageClass",
+      "address": "0x101868970",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCVV4anki21BackendGraphsResponse18TrueRetentionStatsP33_716F4F55E8CDC32BF2794A1705665C1313_StorageClass",
+      "address": "0x101868bf0",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki23CardStatsViewController",
+      "address": "0x101842f88",
+      "instance_methods": [
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x10005a9c8"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10005aa80"
+        }
+      ]
+    },
+    {
+      "name": "_TtCV4anki11BackendCardP33_A61F6111FA6D71BAB68BF317C899B19A13_StorageClass",
+      "address": "0x101869408",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki7Actions",
+      "address": "0x101843118",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x100066284"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1000662c0"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki12ExporterView",
+      "address": "0x1018431c8",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x1000688e0"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10006b684"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10006b6e0"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki13ConfigManager",
+      "address": "0x101869bd0",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki4Note",
+      "address": "0x101869e08",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki20AKConfigTableEditRow",
+      "address": "0x101843320",
+      "instance_methods": [
+        {
+          "selector": "textFieldDidEndEditing:",
+          "implementation": "0x100072908"
+        },
+        {
+          "selector": "textFieldShouldReturn:",
+          "implementation": "0x100072a60"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100072b80"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki21AKConfigTableEditCell",
+      "address": "0x101843468",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x100072fc4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100072fe4"
+        },
+        {
+          "selector": "initWithStyle:reuseIdentifier:",
+          "implementation": "0x10007303c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100073068"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki22AKConfigTableSwitchRow",
+      "address": "0x1018436b0",
+      "instance_methods": [
+        {
+          "selector": "tapped:",
+          "implementation": "0x100073a98"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100073c24"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki23AKConfigTableSwitchCell",
+      "address": "0x1018437e8",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x100073fcc"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100073fec"
+        },
+        {
+          "selector": "initWithStyle:reuseIdentifier:",
+          "implementation": "0x100074044"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100074070"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki21GeneratedTranslations",
+      "address": "0x10186a578",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki22AKConfigTableButtonRow",
+      "address": "0x1018438a8",
+      "instance_methods": [
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100085184"
+        }
+      ]
+    },
+    {
+      "name": "NotificationOptions",
+      "address": "0x1018439d8",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x1000864e4"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10008652c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki16TapIgnoringStack",
+      "address": "0x101843a88",
+      "instance_methods": [
+        {
+          "selector": "hitTest:withEvent:",
+          "implementation": "0x10008bb9c"
+        },
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x10008bcb8"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10008bd24"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki19StudyViewController",
+      "address": "0x101843b38",
+      "instance_methods": [
+        {
+          "selector": "handleQuickBarButton:",
+          "implementation": "0x1000944d4"
+        },
+        {
+          "selector": "motionEnded:withEvent:",
+          "implementation": "0x100094c18"
+        },
+        {
+          "selector": "viewDidLayoutSubviews",
+          "implementation": "0x100095f68"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x100096b8c"
+        },
+        {
+          "selector": "traitCollectionDidChange:",
+          "implementation": "0x100097114"
+        },
+        {
+          "selector": "prefersStatusBarHidden",
+          "implementation": "0x100097168"
+        },
+        {
+          "selector": "viewDidAppear:",
+          "implementation": "0x100097180"
+        },
+        {
+          "selector": "viewSafeAreaInsetsDidChange",
+          "implementation": "0x1000971c4"
+        },
+        {
+          "selector": "viewWillTransitionToSize:withTransitionCoordinator:",
+          "implementation": "0x100097330"
+        },
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x100097784"
+        },
+        {
+          "selector": "canBecomeFirstResponder",
+          "implementation": "0x1000977b4"
+        },
+        {
+          "selector": "textFieldShouldReturn:",
+          "implementation": "0x100097f00"
+        },
+        {
+          "selector": "textFieldShouldEndEditing:",
+          "implementation": "0x100097f58"
+        },
+        {
+          "selector": "textFieldDidEndEditing:",
+          "implementation": "0x100097f60"
+        },
+        {
+          "selector": "textFieldDidBeginEditing:",
+          "implementation": "0x100097f70"
+        },
+        {
+          "selector": "keyCommands",
+          "implementation": "0x100097f84"
+        },
+        {
+          "selector": "handleKeySpace",
+          "implementation": "0x100099438"
+        },
+        {
+          "selector": "onReturn",
+          "implementation": "0x100099704"
+        },
+        {
+          "selector": "handleUp",
+          "implementation": "0x1000997c8"
+        },
+        {
+          "selector": "handleDown",
+          "implementation": "0x100099884"
+        },
+        {
+          "selector": "handleFlag1",
+          "implementation": "0x1000998ac"
+        },
+        {
+          "selector": "handleFlag2",
+          "implementation": "0x1000998b0"
+        },
+        {
+          "selector": "handleFlag3",
+          "implementation": "0x1000998b4"
+        },
+        {
+          "selector": "handleFlag4",
+          "implementation": "0x1000998b8"
+        },
+        {
+          "selector": "handleFlag5",
+          "implementation": "0x1000998bc"
+        },
+        {
+          "selector": "handleFlag6",
+          "implementation": "0x1000998c0"
+        },
+        {
+          "selector": "handleFlag7",
+          "implementation": "0x1000998c4"
+        },
+        {
+          "selector": "handleReplayVoice",
+          "implementation": "0x1000998c8"
+        },
+        {
+          "selector": "handleRecordVoice",
+          "implementation": "0x1000998d4"
+        },
+        {
+          "selector": "handleBuryCard",
+          "implementation": "0x1000998f4"
+        },
+        {
+          "selector": "handleBuryNote",
+          "implementation": "0x1000998f8"
+        },
+        {
+          "selector": "handleSuspendCard",
+          "implementation": "0x1000998fc"
+        },
+        {
+          "selector": "handleSuspendNote",
+          "implementation": "0x100099900"
+        },
+        {
+          "selector": "handleToggleMark",
+          "implementation": "0x100099fb0"
+        },
+        {
+          "selector": "handleKey1",
+          "implementation": "0x10009a0f8"
+        },
+        {
+          "selector": "handleKey2",
+          "implementation": "0x10009a0fc"
+        },
+        {
+          "selector": "handleKey3",
+          "implementation": "0x10009a100"
+        },
+        {
+          "selector": "handleKey4",
+          "implementation": "0x10009a104"
+        },
+        {
+          "selector": "handleKeyR",
+          "implementation": "0x10009a2b0"
+        },
+        {
+          "selector": "handleAdd",
+          "implementation": "0x10009a2d8"
+        },
+        {
+          "selector": "handleEdit",
+          "implementation": "0x10009a2dc"
+        },
+        {
+          "selector": "handleDecks",
+          "implementation": "0x10009a2e0"
+        },
+        {
+          "selector": "handleBrowse",
+          "implementation": "0x10009a2e4"
+        },
+        {
+          "selector": "handleUndo",
+          "implementation": "0x10009a2e8"
+        },
+        {
+          "selector": "handleRedo",
+          "implementation": "0x10009a2ec"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10009b7ac"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10009bb50"
+        },
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x10009d8a8"
+        },
+        {
+          "selector": "updateInterfaceIfInForeground",
+          "implementation": "0x10009dac0"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1000a0818"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1000a084c"
+        }
+      ]
+    },
+    {
+      "name": "_TtCV4anki25BackendOpChangesAfterUndoP33_A0D35A4D6CBFE81096E6F49DCF13044213_StorageClass",
+      "address": "0x10186ebd8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki15OpChangeManager",
+      "address": "0x10186f068",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki16BackendGenerated",
+      "address": "0x101843ea8",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x1000d3934"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki22CardTemplateController",
+      "address": "0x101844cd8",
+      "instance_methods": [
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1000d7a28"
+        },
+        {
+          "selector": "onBack",
+          "implementation": "0x1000d8e00"
+        },
+        {
+          "selector": "tabBarController:shouldSelectViewController:",
+          "implementation": "0x1000d97a4"
+        },
+        {
+          "selector": "initWithTabs:",
+          "implementation": "0x1000d9940"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1000d996c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1000d99a0"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki20SearchViewController",
+      "address": "0x101845080",
+      "instance_methods": [
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1000dd0fc"
+        },
+        {
+          "selector": "keyCommands",
+          "implementation": "0x1000dd15c"
+        },
+        {
+          "selector": "onToggleSuspend",
+          "implementation": "0x1000dd1bc"
+        },
+        {
+          "selector": "focusSearchArea",
+          "implementation": "0x1000dd2f8"
+        },
+        {
+          "selector": "traitCollectionDidChange:",
+          "implementation": "0x1000dd358"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1000dd3d4"
+        },
+        {
+          "selector": "onPreview",
+          "implementation": "0x1000dd980"
+        },
+        {
+          "selector": "onSelectToggle",
+          "implementation": "0x1000ddab4"
+        },
+        {
+          "selector": "onSelectAll",
+          "implementation": "0x1000ddb70"
+        },
+        {
+          "selector": "onActions:",
+          "implementation": "0x1000dde18"
+        },
+        {
+          "selector": "tableView:didSelectRowAtIndexPath:",
+          "implementation": "0x1000de480"
+        },
+        {
+          "selector": "tableView:numberOfRowsInSection:",
+          "implementation": "0x1000de7c4"
+        },
+        {
+          "selector": "tableView:cellForRowAtIndexPath:",
+          "implementation": "0x1000dea00"
+        },
+        {
+          "selector": "viewDidLayoutSubviews",
+          "implementation": "0x1000deac4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1000dec28"
+        },
+        {
+          "selector": "onOptions",
+          "implementation": "0x1000dec44"
+        },
+        {
+          "selector": "searchBarSearchButtonClicked:",
+          "implementation": "0x1000ded78"
+        },
+        {
+          "selector": "searchBarCancelButtonClicked:",
+          "implementation": "0x1000dedc4"
+        },
+        {
+          "selector": "onFilter:",
+          "implementation": "0x1000e0214"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1000e0264"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki20AKConfigTableEnumRow",
+      "address": "0x101845d78",
+      "instance_methods": [
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1000e2e88"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki24CheckMediaViewController",
+      "address": "0x101845ee8",
+      "instance_methods": [
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1000eb794"
+        },
+        {
+          "selector": "viewDidAppear:",
+          "implementation": "0x1000ebc94"
+        },
+        {
+          "selector": "deleteUnused",
+          "implementation": "0x1000ed84c"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1000ee824"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1000ee90c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1000ee968"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki28ImageOcclusionViewController",
+      "address": "0x101845fa8",
+      "instance_methods": [
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1000f2784"
+        },
+        {
+          "selector": "onBack",
+          "implementation": "0x1000f2818"
+        },
+        {
+          "selector": "onSave",
+          "implementation": "0x1000f28a8"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1000f2940"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1000f29f8"
+        }
+      ]
+    },
+    {
+      "name": "_TtCV4anki35BackendRenderUncommittedCardRequestP33_56E8698A713A0480C94E600A58D61C2113_StorageClass",
+      "address": "0x10186fad0",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki8DeckCell",
+      "address": "0x101846138",
+      "instance_methods": [
+        {
+          "selector": "deckName",
+          "implementation": "0x100101178"
+        },
+        {
+          "selector": "setDeckName:",
+          "implementation": "0x100101188"
+        },
+        {
+          "selector": "oldLabel",
+          "implementation": "0x1001011bc"
+        },
+        {
+          "selector": "setOldLabel:",
+          "implementation": "0x1001011cc"
+        },
+        {
+          "selector": "oldCount",
+          "implementation": "0x100101200"
+        },
+        {
+          "selector": "setOldCount:",
+          "implementation": "0x100101210"
+        },
+        {
+          "selector": "nuLabel",
+          "implementation": "0x100101244"
+        },
+        {
+          "selector": "setNuLabel:",
+          "implementation": "0x100101254"
+        },
+        {
+          "selector": "nuCount",
+          "implementation": "0x100101288"
+        },
+        {
+          "selector": "setNuCount:",
+          "implementation": "0x100101298"
+        },
+        {
+          "selector": "actvity",
+          "implementation": "0x1001012cc"
+        },
+        {
+          "selector": "setActvity:",
+          "implementation": "0x1001012dc"
+        },
+        {
+          "selector": "sectionButton",
+          "implementation": "0x100101310"
+        },
+        {
+          "selector": "setSectionButton:",
+          "implementation": "0x100101320"
+        },
+        {
+          "selector": "leadingSpace",
+          "implementation": "0x100101354"
+        },
+        {
+          "selector": "setLeadingSpace:",
+          "implementation": "0x100101364"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10010155c"
+        },
+        {
+          "selector": "toggleSectionShown",
+          "implementation": "0x100101584"
+        },
+        {
+          "selector": "hideButton",
+          "implementation": "0x1001015e0"
+        },
+        {
+          "selector": "showButton",
+          "implementation": "0x1001015e8"
+        },
+        {
+          "selector": "setSelected:animated:",
+          "implementation": "0x100101614"
+        },
+        {
+          "selector": "layoutSubviews",
+          "implementation": "0x1001016fc"
+        },
+        {
+          "selector": "initWithStyle:reuseIdentifier:",
+          "implementation": "0x100101724"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100101750"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki18CardTemplateEditor",
+      "address": "0x101846238",
+      "instance_methods": [
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100101be4"
+        },
+        {
+          "selector": "textViewDidChange:",
+          "implementation": "0x100101db4"
+        },
+        {
+          "selector": "textViewDidBeginEditing:",
+          "implementation": "0x100101e00"
+        },
+        {
+          "selector": "textViewDidEndEditing:",
+          "implementation": "0x100101e4c"
+        },
+        {
+          "selector": "endEditing",
+          "implementation": "0x100101ecc"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x100102260"
+        },
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x100102290"
+        },
+        {
+          "selector": "keyboardWillShowForResizingWithNotification:",
+          "implementation": "0x100102654"
+        },
+        {
+          "selector": "keyboardWillHideForResizingWithNotification:",
+          "implementation": "0x100102968"
+        },
+        {
+          "selector": "revert",
+          "implementation": "0x100102a1c"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x100102abc"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100102af0"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki11Preferences",
+      "address": "0x1018466e8",
+      "instance_methods": [
+        {
+          "selector": "viewController",
+          "implementation": "0x100106e20"
+        },
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100106fe8"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100108bc4"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100108c44"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki12SyncingPrefs",
+      "address": "0x1018467d0",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100109b18"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10010bbb8"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10010bbc4"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki11ReviewPrefs",
+      "address": "0x101846888",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x10010dea4"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10010deb8"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10010dec4"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki12EditingPrefs",
+      "address": "0x101846940",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x10010ed04"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10010ed18"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10010ed24"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki11TopBarPrefs",
+      "address": "0x1018469f8",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x10010f358"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10010f36c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10010f378"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki14BottomBarPrefs",
+      "address": "0x101846ab0",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100110258"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10011026c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100110278"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki8TapPrefs",
+      "address": "0x101846b68",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100111454"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100111468"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100111474"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki10SwipePrefs",
+      "address": "0x101846c20",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100111a6c"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100111a80"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100111a8c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki15ScratchpadPrefs",
+      "address": "0x101846cd8",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100112a20"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100112a34"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100112a40"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki12GamepadPrefs",
+      "address": "0x101846d90",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100113158"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1001131d0"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100113238"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki7Backend",
+      "address": "0x101846e48",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x10012ef68"
+        },
+        {
+          "selector": "dealloc",
+          "implementation": "0x10012fa90"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki12Translations",
+      "address": "0x101870790",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki12PopupManager",
+      "address": "0x101874618",
+      "instance_methods": [
+        {
+          "selector": "onPopupTimer",
+          "implementation": "0x100132b74"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki15ProgressManager",
+      "address": "0x1018746c0",
+      "instance_methods": [
+        {
+          "selector": "onCancelTapped",
+          "implementation": "0x1001338fc"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki15DownloadManager",
+      "address": "0x101847c78",
+      "instance_methods": [
+        {
+          "selector": "URLSession:downloadTask:didFinishDownloadingToURL:",
+          "implementation": "0x100136818"
+        },
+        {
+          "selector": "URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:",
+          "implementation": "0x100136aa0"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100136aac"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4ankiP33_BC249038BA14F29C12CC9B9313D5B13011SoundPlayer",
+      "address": "0x101848080",
+      "instance_methods": [
+        {
+          "selector": "initOnFinished:",
+          "implementation": "0x1001376dc"
+        },
+        {
+          "selector": "audioPlayerDidFinishPlaying:successfully:",
+          "implementation": "0x100137e48"
+        },
+        {
+          "selector": "audioPlayerDecodeErrorDidOccur:error:",
+          "implementation": "0x100137eb4"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100137f44"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100137f7c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4ankiP33_BC249038BA14F29C12CC9B9313D5B1309TTSPlayer",
+      "address": "0x1018481e0",
+      "instance_methods": [
+        {
+          "selector": "speechSynthesizer:didFinishSpeechUtterance:",
+          "implementation": "0x100138224"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1001382e0"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100138350"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4ankiP33_BC249038BA14F29C12CC9B9313D5B13013AudioRecorder",
+      "address": "0x101874860",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki12AudioManager",
+      "address": "0x101848318",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x10013a2b0"
+        },
+        {
+          "selector": "stopAndClearQueue",
+          "implementation": "0x10013aa70"
+        },
+        {
+          "selector": "jumpfwd5",
+          "implementation": "0x10013b0c4"
+        },
+        {
+          "selector": "jumpback5",
+          "implementation": "0x10013b190"
+        },
+        {
+          "selector": "pause",
+          "implementation": "0x10013b30c"
+        },
+        {
+          "selector": "isPlaying",
+          "implementation": "0x10013b334"
+        },
+        {
+          "selector": "isRecording",
+          "implementation": "0x10013b34c"
+        },
+        {
+          "selector": "recordVoiceWithCompletion:",
+          "implementation": "0x10013b4c8"
+        },
+        {
+          "selector": "replayRecordedFile",
+          "implementation": "0x10013b53c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10013b564"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki24AKConfigTableEnumSection",
+      "address": "0x101874bf8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki19ToolsViewController",
+      "address": "0x1018485d8",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x100147644"
+        },
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x100149794"
+        },
+        {
+          "selector": "prefersStatusBarHidden",
+          "implementation": "0x1001497bc"
+        },
+        {
+          "selector": "viewDidLayoutSubviews",
+          "implementation": "0x10014991c"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x100149b2c"
+        },
+        {
+          "selector": "onTextSmaller",
+          "implementation": "0x100149b94"
+        },
+        {
+          "selector": "onTextLarger",
+          "implementation": "0x100149bc0"
+        },
+        {
+          "selector": "numberOfSectionsInCollectionView:",
+          "implementation": "0x100149d18"
+        },
+        {
+          "selector": "collectionView:numberOfItemsInSection:",
+          "implementation": "0x100149d20"
+        },
+        {
+          "selector": "collectionView:cellForItemAtIndexPath:",
+          "implementation": "0x10014a538"
+        },
+        {
+          "selector": "collectionView:didSelectItemAtIndexPath:",
+          "implementation": "0x10014a600"
+        },
+        {
+          "selector": "collectionView:viewForSupplementaryElementOfKind:atIndexPath:",
+          "implementation": "0x10014add8"
+        },
+        {
+          "selector": "collectionView:moveItemAtIndexPath:toIndexPath:",
+          "implementation": "0x10014aed0"
+        },
+        {
+          "selector": "collectionView:canMoveItemAtIndexPath:",
+          "implementation": "0x10014afd0"
+        },
+        {
+          "selector": "onLongPressWithSender:",
+          "implementation": "0x10014bd5c"
+        },
+        {
+          "selector": "collectionView:targetIndexPathForMoveFromItemAtIndexPath:toProposedIndexPath:",
+          "implementation": "0x10014bdac"
+        },
+        {
+          "selector": "presentationControllerForPresentedViewController:presentingViewController:sourceViewController:",
+          "implementation": "0x10014befc"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x10014c128"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10014c31c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10014c344"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki27ToolsPresentationController",
+      "address": "0x1018486d8",
+      "instance_methods": [
+        {
+          "selector": "dismiss",
+          "implementation": "0x10014c53c"
+        },
+        {
+          "selector": "initWithPresentedViewController:presentingViewController:",
+          "implementation": "0x10014c7d8"
+        },
+        {
+          "selector": "frameOfPresentedViewInContainerView",
+          "implementation": "0x10014c820"
+        },
+        {
+          "selector": "dismissalTransitionWillBegin",
+          "implementation": "0x10014c998"
+        },
+        {
+          "selector": "presentationTransitionWillBegin",
+          "implementation": "0x10014cb60"
+        },
+        {
+          "selector": "containerViewWillLayoutSubviews",
+          "implementation": "0x10014cc8c"
+        },
+        {
+          "selector": "containerViewDidLayoutSubviews",
+          "implementation": "0x10014cdbc"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10014cde4"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki18CollectionViewCell",
+      "address": "0x101848798",
+      "instance_methods": [
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x10014d08c"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10014d11c"
+        },
+        {
+          "selector": "layoutSubviews",
+          "implementation": "0x10014d1b0"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10014d2a0"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki16LabelWithMargins",
+      "address": "0x101848850",
+      "instance_methods": [
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x10014d2d0"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10014d3b0"
+        },
+        {
+          "selector": "drawTextInRect:",
+          "implementation": "0x10014d408"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki13SectionHeader",
+      "address": "0x101848900",
+      "instance_methods": [
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x10014d4d4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10014d574"
+        },
+        {
+          "selector": "layoutSubviews",
+          "implementation": "0x10014d610"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10014d61c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki18TrashSectionHeader",
+      "address": "0x1018489b8",
+      "instance_methods": [
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x10014d7dc"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10014d920"
+        },
+        {
+          "selector": "layoutSubviews",
+          "implementation": "0x10014d948"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10014d9f4"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki18EditViewController",
+      "address": "0x1018493e8",
+      "instance_methods": [
+        {
+          "selector": "keyCommands",
+          "implementation": "0x100150868"
+        },
+        {
+          "selector": "onTabPressed",
+          "implementation": "0x100151418"
+        },
+        {
+          "selector": "canBecomeFirstResponder",
+          "implementation": "0x100151440"
+        },
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x100151f30"
+        },
+        {
+          "selector": "keyboardWillShow:",
+          "implementation": "0x1001523bc"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x100153274"
+        },
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x1001532a4"
+        },
+        {
+          "selector": "dealloc",
+          "implementation": "0x1001533a8"
+        },
+        {
+          "selector": "traitCollectionDidChange:",
+          "implementation": "0x10015360c"
+        },
+        {
+          "selector": "viewWillTransitionToSize:withTransitionCoordinator:",
+          "implementation": "0x100153714"
+        },
+        {
+          "selector": "viewDidLayoutSubviews",
+          "implementation": "0x100153a74"
+        },
+        {
+          "selector": "willEnterForeground",
+          "implementation": "0x100153b84"
+        },
+        {
+          "selector": "adaptivePresentationStyleForPresentationController:",
+          "implementation": "0x100153e10"
+        },
+        {
+          "selector": "toggleBold",
+          "implementation": "0x100153f70"
+        },
+        {
+          "selector": "toggleItalic",
+          "implementation": "0x100154028"
+        },
+        {
+          "selector": "toggleUnder",
+          "implementation": "0x1001540e0"
+        },
+        {
+          "selector": "removeFormatting",
+          "implementation": "0x100154198"
+        },
+        {
+          "selector": "onMath:forEvent:",
+          "implementation": "0x1001541c0"
+        },
+        {
+          "selector": "onSubscript",
+          "implementation": "0x10015430c"
+        },
+        {
+          "selector": "onSuperscript",
+          "implementation": "0x100154418"
+        },
+        {
+          "selector": "onTex1",
+          "implementation": "0x100154550"
+        },
+        {
+          "selector": "onTex2",
+          "implementation": "0x100154688"
+        },
+        {
+          "selector": "onColor:",
+          "implementation": "0x100154ef8"
+        },
+        {
+          "selector": "onColor1:",
+          "implementation": "0x1001551a4"
+        },
+        {
+          "selector": "clozeDetectNumWithSender:forEvent:",
+          "implementation": "0x1001559f8"
+        },
+        {
+          "selector": "clozeNewNum",
+          "implementation": "0x100155a60"
+        },
+        {
+          "selector": "clozeSameNum",
+          "implementation": "0x100155a8c"
+        },
+        {
+          "selector": "onImageOcclusionWithTarget:",
+          "implementation": "0x1001582ec"
+        },
+        {
+          "selector": "cancel",
+          "implementation": "0x100158610"
+        },
+        {
+          "selector": "save",
+          "implementation": "0x1001588a4"
+        },
+        {
+          "selector": "documentPicker:didPickDocumentsAtURLs:",
+          "implementation": "0x10015b260"
+        },
+        {
+          "selector": "addImage:",
+          "implementation": "0x10015c87c"
+        },
+        {
+          "selector": "imagePickerController:didFinishPickingMediaWithInfo:",
+          "implementation": "0x10015dc24"
+        },
+        {
+          "selector": "record",
+          "implementation": "0x10015f5ec"
+        },
+        {
+          "selector": "preview",
+          "implementation": "0x10016106c"
+        },
+        {
+          "selector": "toggleHTML",
+          "implementation": "0x100161488"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100161670"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x100161898"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1001618f8"
+        },
+        {
+          "selector": "changeNoteType",
+          "implementation": "0x10016ad24"
+        },
+        {
+          "selector": "changeDeck",
+          "implementation": "0x10016b0b8"
+        },
+        {
+          "selector": "editTools",
+          "implementation": "0x10016d8f4"
+        },
+        {
+          "selector": "addDrawing",
+          "implementation": "0x10016e448"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001533cc"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki13DragDropAudio",
+      "address": "0x101849558",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x10016fd10"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10016fd3c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki7WebView",
+      "address": "0x101849620",
+      "instance_methods": [
+        {
+          "selector": "canPerformAction:withSender:",
+          "implementation": "0x10016ff10"
+        },
+        {
+          "selector": "initWithFrame:configuration:",
+          "implementation": "0x10016ffa8"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10017001c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki19DecksViewController",
+      "address": "0x101849960",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x10017a924"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10017aa88"
+        },
+        {
+          "selector": "launchPreferences",
+          "implementation": "0x10017b618"
+        },
+        {
+          "selector": "showHelp",
+          "implementation": "0x10017b61c"
+        },
+        {
+          "selector": "addExportButtonHandler",
+          "implementation": "0x10017cc90"
+        },
+        {
+          "selector": "launchStudy",
+          "implementation": "0x10017d858"
+        },
+        {
+          "selector": "launchSync",
+          "implementation": "0x10017d9dc"
+        },
+        {
+          "selector": "launchStats",
+          "implementation": "0x10017ee08"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x10017f8c8"
+        },
+        {
+          "selector": "keyCommands",
+          "implementation": "0x10017f8f8"
+        },
+        {
+          "selector": "launchAdd",
+          "implementation": "0x10017f958"
+        },
+        {
+          "selector": "launchBrowse",
+          "implementation": "0x10017f95c"
+        },
+        {
+          "selector": "launchUndo",
+          "implementation": "0x10017f9cc"
+        },
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x1001800dc"
+        },
+        {
+          "selector": "viewDidAppear:",
+          "implementation": "0x100180104"
+        },
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x1001810b4"
+        },
+        {
+          "selector": "viewDidDisappear:",
+          "implementation": "0x100181154"
+        },
+        {
+          "selector": "traitCollectionDidChange:",
+          "implementation": "0x1001811ac"
+        },
+        {
+          "selector": "numberOfSectionsInTableView:",
+          "implementation": "0x100181248"
+        },
+        {
+          "selector": "tableView:numberOfRowsInSection:",
+          "implementation": "0x10018125c"
+        },
+        {
+          "selector": "tableView:cellForRowAtIndexPath:",
+          "implementation": "0x100181b94"
+        },
+        {
+          "selector": "tableView:indentationLevelForRowAtIndexPath:",
+          "implementation": "0x100181c5c"
+        },
+        {
+          "selector": "tableView:heightForHeaderInSection:",
+          "implementation": "0x100181d20"
+        },
+        {
+          "selector": "tableView:heightForFooterInSection:",
+          "implementation": "0x100181d28"
+        },
+        {
+          "selector": "tableView:viewForHeaderInSection:",
+          "implementation": "0x100181d30"
+        },
+        {
+          "selector": "tableView:viewForFooterInSection:",
+          "implementation": "0x100181d34"
+        },
+        {
+          "selector": "tableView:didSelectRowAtIndexPath:",
+          "implementation": "0x100181ff8"
+        },
+        {
+          "selector": "refresh:",
+          "implementation": "0x1001820b4"
+        },
+        {
+          "selector": "titleTapped",
+          "implementation": "0x100182248"
+        },
+        {
+          "selector": "onSearch",
+          "implementation": "0x1001822ec"
+        },
+        {
+          "selector": "tableView:trailingSwipeActionsConfigurationForRowAtIndexPath:",
+          "implementation": "0x100183150"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x100183214"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100183248"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki21WebviewBackendHandler",
+      "address": "0x101849bb8",
+      "instance_methods": [
+        {
+          "selector": "webView:startURLSchemeTask:",
+          "implementation": "0x10018a374"
+        },
+        {
+          "selector": "webView:stopURLSchemeTask:",
+          "implementation": "0x10018a380"
+        },
+        {
+          "selector": "webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:",
+          "implementation": "0x10018a3f4"
+        },
+        {
+          "selector": "webView:runJavaScriptConfirmPanelWithMessage:initiatedByFrame:completionHandler:",
+          "implementation": "0x10018a4b0"
+        },
+        {
+          "selector": "userContentController:didReceiveScriptMessage:",
+          "implementation": "0x10018a5ec"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10018a654"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10018a680"
+        }
+      ]
+    },
+    {
+      "name": "CustomStudy",
+      "address": "0x101849f28",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100190fb4"
+        },
+        {
+          "selector": "accept",
+          "implementation": "0x100192edc"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100193b00"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100193b5c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki15QuickbarControl",
+      "address": "0x10184a0e0",
+      "instance_methods": [
+        {
+          "selector": "initWithFrame:andTarget:andSelector:",
+          "implementation": "0x100195ca8"
+        },
+        {
+          "selector": "touchesEnded:withEvent:",
+          "implementation": "0x100195ef4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100195f84"
+        },
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x100195fec"
+        },
+        {
+          "selector": "initWithItems:",
+          "implementation": "0x100196018"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100196044"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki22AKConfigTableActionRow",
+      "address": "0x10184a1b0",
+      "instance_methods": [
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001965c0"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki10TagManager",
+      "address": "0x101875b78",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki10Collection",
+      "address": "0x101875c18",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki14AnkiMainWindow",
+      "address": "0x10184a2f0",
+      "instance_methods": [
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x100198ab4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100198b20"
+        },
+        {
+          "selector": "initWithWindowScene:",
+          "implementation": "0x100198b78"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki16AKGameController",
+      "address": "0x101875d30",
+      "instance_methods": [
+        {
+          "selector": "onControllerConnectWithNote:",
+          "implementation": "0x100199840"
+        },
+        {
+          "selector": "onControllerDisconnectWithNote:",
+          "implementation": "0x1001998dc"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki12RenderOutput",
+      "address": "0x101875df8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki19AboutViewController",
+      "address": "0x10184a3a0",
+      "instance_methods": [
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x1001a1728"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1001a1c94"
+        },
+        {
+          "selector": "webView:didFinishNavigation:",
+          "implementation": "0x1001a1cbc"
+        },
+        {
+          "selector": "webView:decidePolicyForNavigationAction:decisionHandler:",
+          "implementation": "0x1001a1dd8"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1001a1e68"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1001a1f38"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001a1f88"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki14SchedulerSwift",
+      "address": "0x101876098",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki12MediaManager",
+      "address": "0x101876150",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki16AKConfigTableRow",
+      "address": "0x10184a688",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x1001b3c5c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001b3cb8"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki20AKConfigTableSection",
+      "address": "0x101876360",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki24AKConfigTableRowsSection",
+      "address": "0x101876470",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki23AKConfigTableController",
+      "address": "0x10184a7b0",
+      "instance_methods": [
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1001b7e10"
+        },
+        {
+          "selector": "keyboardWillShow:",
+          "implementation": "0x1001b8020"
+        },
+        {
+          "selector": "keyboardWillHide:",
+          "implementation": "0x1001b8190"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1001b8264"
+        },
+        {
+          "selector": "setupFromDelegate:",
+          "implementation": "0x1001b8280"
+        },
+        {
+          "selector": "tableView:numberOfRowsInSection:",
+          "implementation": "0x1001b842c"
+        },
+        {
+          "selector": "numberOfSectionsInTableView:",
+          "implementation": "0x1001b8520"
+        },
+        {
+          "selector": "tableView:cellForRowAtIndexPath:",
+          "implementation": "0x1001b85e4"
+        },
+        {
+          "selector": "tableView:didSelectRowAtIndexPath:",
+          "implementation": "0x1001b875c"
+        },
+        {
+          "selector": "tableView:titleForHeaderInSection:",
+          "implementation": "0x1001b88cc"
+        },
+        {
+          "selector": "tableView:titleForFooterInSection:",
+          "implementation": "0x1001b89e8"
+        },
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x1001b8c98"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1001b8cc8"
+        },
+        {
+          "selector": "tableView:canEditRowAtIndexPath:",
+          "implementation": "0x1001b8da0"
+        },
+        {
+          "selector": "tableView:commitEditingStyle:forRowAtIndexPath:",
+          "implementation": "0x1001b8f18"
+        },
+        {
+          "selector": "setEditing:animated:",
+          "implementation": "0x1001b9198"
+        },
+        {
+          "selector": "addItem:",
+          "implementation": "0x1001b91dc"
+        },
+        {
+          "selector": "traitCollectionDidChange:",
+          "implementation": "0x1001b9304"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001b9358"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki4Card",
+      "address": "0x101876838",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki23SinglePreviewController",
+      "address": "0x10184a890",
+      "instance_methods": [
+        {
+          "selector": "flip",
+          "implementation": "0x1001c0f5c"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1001c1214"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1001c1244"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001c1280"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki22AMNavigationController",
+      "address": "0x10184aa60",
+      "instance_methods": [
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x1001c134c"
+        },
+        {
+          "selector": "traitCollectionDidChange:",
+          "implementation": "0x1001c142c"
+        },
+        {
+          "selector": "preferredStatusBarStyle",
+          "implementation": "0x1001c1480"
+        },
+        {
+          "selector": "shouldAutorotate",
+          "implementation": "0x1001c1494"
+        },
+        {
+          "selector": "supportedInterfaceOrientations",
+          "implementation": "0x1001c149c"
+        },
+        {
+          "selector": "initWithNavigationBarClass:toolbarClass:",
+          "implementation": "0x1001c1550"
+        },
+        {
+          "selector": "initWithRootViewController:",
+          "implementation": "0x1001c15a4"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1001c15e8"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1001c16a0"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki20SwiftUIBarButtonItem",
+      "address": "0x10184ab10",
+      "instance_methods": [
+        {
+          "selector": "barButtonItemPressedWithSender:",
+          "implementation": "0x1001c1704"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1001c17a4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1001c17f0"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001c1844"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki9JsonUtils",
+      "address": "0x101876a20",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki15NotetypeManager",
+      "address": "0x101876ab8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki12AnkiDatabase",
+      "address": "0x101876b70",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki12ThemeOptions",
+      "address": "0x10184abc8",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x1001c8c94"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1001c8ce4"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001c8d38"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki5Utils",
+      "address": "0x101876c40",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki21DrawingViewController",
+      "address": "0x10184ac80",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x1001cd2bc"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1001cd2dc"
+        },
+        {
+          "selector": "viewDidLayoutSubviews",
+          "implementation": "0x1001cd5d0"
+        },
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x1001cd5f8"
+        },
+        {
+          "selector": "cancel",
+          "implementation": "0x1001cd9c0"
+        },
+        {
+          "selector": "userWantsSave",
+          "implementation": "0x1001ce1f4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1001ce2e8"
+        },
+        {
+          "selector": "prefersHomeIndicatorAutoHidden",
+          "implementation": "0x1001ce304"
+        },
+        {
+          "selector": "canvasViewDrawingDidChange:",
+          "implementation": "0x1001ce30c"
+        },
+        {
+          "selector": "toolPickerFramesObscuredDidChange:",
+          "implementation": "0x1001ce368"
+        },
+        {
+          "selector": "toolPickerVisibilityDidChange:",
+          "implementation": "0x1001ce36c"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1001ce3fc"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001ce430"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki11MediaSyncer",
+      "address": "0x101876d90",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki18MediaSyncingScreen",
+      "address": "0x10184ae48",
+      "instance_methods": [
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1001d0aec"
+        },
+        {
+          "selector": "onAbort",
+          "implementation": "0x1001d0b14"
+        },
+        {
+          "selector": "viewDidAppear:",
+          "implementation": "0x1001d0d94"
+        },
+        {
+          "selector": "onBack",
+          "implementation": "0x1001d1294"
+        },
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x1001d12bc"
+        },
+        {
+          "selector": "updateLog",
+          "implementation": "0x1001d1340"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1001d1368"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1001d1450"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001d14ac"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki22ProfilesViewController",
+      "address": "0x10184af08",
+      "instance_methods": [
+        {
+          "selector": "showAddProfileAlert",
+          "implementation": "0x1001d2d78"
+        },
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x1001d4168"
+        },
+        {
+          "selector": "didReceiveMemoryWarning",
+          "implementation": "0x1001d4190"
+        },
+        {
+          "selector": "numberOfSectionsInTableView:",
+          "implementation": "0x1001d41cc"
+        },
+        {
+          "selector": "tableView:numberOfRowsInSection:",
+          "implementation": "0x1001d41d4"
+        },
+        {
+          "selector": "tableView:cellForRowAtIndexPath:",
+          "implementation": "0x1001d46d8"
+        },
+        {
+          "selector": "tableView:didSelectRowAtIndexPath:",
+          "implementation": "0x1001d47a0"
+        },
+        {
+          "selector": "tableView:trailingSwipeActionsConfigurationForRowAtIndexPath:",
+          "implementation": "0x1001d4e34"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1001d4fc4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1001d5024"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001d5090"
+        }
+      ]
+    },
+    {
+      "name": "AKScratchpadView",
+      "address": "0x10184afd0",
+      "instance_methods": [
+        {
+          "selector": "touchesBegan:withEvent:",
+          "implementation": "0x1001d5f20"
+        },
+        {
+          "selector": "touchesMoved:withEvent:",
+          "implementation": "0x1001d6298"
+        },
+        {
+          "selector": "touchesEnded:withEvent:",
+          "implementation": "0x1001d6328"
+        },
+        {
+          "selector": "drawRect:",
+          "implementation": "0x1001d63c4"
+        },
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x1001d6d1c"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1001d6e2c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001d6e84"
+        }
+      ]
+    },
+    {
+      "name": "_TtCV4anki23BackendSchedulingStatesP33_83D7323793DA02C2E1DABBD54FADB92413_StorageClass",
+      "address": "0x101877000",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV4anki17BackendCardAnswerP33_83D7323793DA02C2E1DABBD54FADB92413_StorageClass",
+      "address": "0x101877140",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki7AKTheme",
+      "address": "0x10184b240",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x1001ff6c4"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1001ff700"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki22AKConfigTableNestedRow",
+      "address": "0x10184b2f0",
+      "instance_methods": [
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100202a50"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki23DeckStatsViewController",
+      "address": "0x10184b428",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x100203c78"
+        },
+        {
+          "selector": "onDeckChange",
+          "implementation": "0x100204ba8"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x100204cd4"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100204d8c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki24EmptyCardsViewController",
+      "address": "0x10184b5b8",
+      "instance_methods": [
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1002068a4"
+        },
+        {
+          "selector": "webView:decidePolicyForNavigationAction:decisionHandler:",
+          "implementation": "0x1002068cc"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x100207ea8"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100207fa0"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100208004"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki8AKLayout",
+      "address": "0x10184b678",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x100209210"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki25DeckOptionsViewController",
+      "address": "0x10184b728",
+      "instance_methods": [
+        {
+          "selector": "webView:decidePolicyForNavigationAction:decisionHandler:",
+          "implementation": "0x100215448"
+        },
+        {
+          "selector": "cancel",
+          "implementation": "0x1002155b0"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1002155d8"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1002156a8"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki11DeckManager",
+      "address": "0x101878110",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki14ActionsManager",
+      "address": "0x10184b8c0",
+      "instance_methods": [
+        {
+          "selector": "add",
+          "implementation": "0x100217c78"
+        },
+        {
+          "selector": "answerWrong",
+          "implementation": "0x100217fe8"
+        },
+        {
+          "selector": "answerHard",
+          "implementation": "0x1002181ec"
+        },
+        {
+          "selector": "answerGood",
+          "implementation": "0x1002183f0"
+        },
+        {
+          "selector": "answerEasy",
+          "implementation": "0x1002186a0"
+        },
+        {
+          "selector": "buryNote",
+          "implementation": "0x1002188d4"
+        },
+        {
+          "selector": "edit",
+          "implementation": "0x100218dc4"
+        },
+        {
+          "selector": "finish",
+          "implementation": "0x100219078"
+        },
+        {
+          "selector": "searchWithSearch:",
+          "implementation": "0x1002194f4"
+        },
+        {
+          "selector": "suspendCard",
+          "implementation": "0x100219ae8"
+        },
+        {
+          "selector": "suspendNote",
+          "implementation": "0x100219ce4"
+        },
+        {
+          "selector": "undo",
+          "implementation": "0x100219e80"
+        },
+        {
+          "selector": "redo",
+          "implementation": "0x10021a05c"
+        },
+        {
+          "selector": "maybeHideTools",
+          "implementation": "0x10021a154"
+        },
+        {
+          "selector": "buryCard",
+          "implementation": "0x10021a40c"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10021bf68"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki14ProfileManager",
+      "address": "0x10184bb48",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x1002206cc"
+        },
+        {
+          "selector": "valueForKey:",
+          "implementation": "0x100220fe0"
+        },
+        {
+          "selector": "setValue:forKey:",
+          "implementation": "0x1002210e4"
+        },
+        {
+          "selector": "setValuesForKeysWithDictionary:",
+          "implementation": "0x10022153c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100221db0"
+        }
+      ]
+    },
+    {
+      "name": "BackupManager",
+      "address": "0x10184bc00",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100225b28"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100226e8c"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100226f00"
+        }
+      ]
+    },
+    {
+      "name": "_TtCV4anki15BackendNotetypeP33_19CC26AC9FAA3286B32C7DECD8E75A3413_StorageClass",
+      "address": "0x101878598",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4ankiP33_D51C025866704589FDD416A50AB6373B12DeckSelector",
+      "address": "0x10184bcc8",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x10023d988"
+        },
+        {
+          "selector": "addDeck",
+          "implementation": "0x10023e304"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10023e438"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10023e498"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4ankiP33_BA7914147DB977808E957D6AADBFA98416NotetypeSelector",
+      "address": "0x10184be10",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x10023f590"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x10023f5e0"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10023f640"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki6Logger",
+      "address": "0x101878d30",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki28ChangeNotetypeViewController",
+      "address": "0x10184bf50",
+      "instance_methods": [
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x100242bfc"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100242cb4"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki18PageViewController",
+      "address": "0x10184c0e0",
+      "instance_methods": [
+        {
+          "selector": "hidesBottomBarWhenPushed",
+          "implementation": "0x100242ff8"
+        },
+        {
+          "selector": "setHidesBottomBarWhenPushed:",
+          "implementation": "0x100243000"
+        },
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x100243748"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x10024389c"
+        },
+        {
+          "selector": "viewDidAppear:",
+          "implementation": "0x1002438cc"
+        },
+        {
+          "selector": "webView:didFinishNavigation:",
+          "implementation": "0x100243924"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x100243b20"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100243c80"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100243cd8"
+        }
+      ]
+    },
+    {
+      "name": "_TtCV4anki17BackendSearchNodeP33_D06ABC0779AC7A921930628D69FF121613_StorageClass",
+      "address": "0x101878ee0",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV4anki18BackendPreferencesP33_81DE4BB13E7EBF1A3AC3B8FC60C0E02813_StorageClass",
+      "address": "0x101879530",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV4anki21BackendImportResponseP33_ED84E02B7169ABF06910759DCB9F40FD13_StorageClass",
+      "address": "0x101879a78",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki7Backups",
+      "address": "0x10187a3c8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki20FilterViewController",
+      "address": "0x10184c270",
+      "instance_methods": [
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x100284dc4"
+        },
+        {
+          "selector": "viewDidAppear:",
+          "implementation": "0x100284e24"
+        },
+        {
+          "selector": "viewDidLayoutSubviews",
+          "implementation": "0x100284e68"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100284f08"
+        },
+        {
+          "selector": "preferredContentSize",
+          "implementation": "0x100285238"
+        },
+        {
+          "selector": "setPreferredContentSize:",
+          "implementation": "0x1002852dc"
+        },
+        {
+          "selector": "searchBarCancelButtonClicked:",
+          "implementation": "0x100285330"
+        },
+        {
+          "selector": "searchBar:textDidChange:",
+          "implementation": "0x100285344"
+        },
+        {
+          "selector": "searchBarSearchButtonClicked:",
+          "implementation": "0x100285390"
+        },
+        {
+          "selector": "tableView:numberOfRowsInSection:",
+          "implementation": "0x1002853a0"
+        },
+        {
+          "selector": "tableView:cellForRowAtIndexPath:",
+          "implementation": "0x1002853b4"
+        },
+        {
+          "selector": "tableView:didSelectRowAtIndexPath:",
+          "implementation": "0x100285478"
+        },
+        {
+          "selector": "tableView:trailingSwipeActionsConfigurationForRowAtIndexPath:",
+          "implementation": "0x100285688"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10028574c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4ankiP33_9C9314D65D0C14F3CF1AB9E338E8975510FilterCell",
+      "address": "0x10184c348",
+      "instance_methods": [
+        {
+          "selector": "initWithStyle:reuseIdentifier:",
+          "implementation": "0x1002857d8"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10028587c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki10SearchCell",
+      "address": "0x10184c400",
+      "instance_methods": [
+        {
+          "selector": "initWithStyle:reuseIdentifier:",
+          "implementation": "0x1002898e8"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x100289930"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100289be4"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki14BrowserDbState",
+      "address": "0x10187a888",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki14BrowserOptions",
+      "address": "0x10184c4d8",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x100292280"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x100292e78"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x100292ea4"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki10ImportPage",
+      "address": "0x10184c5b8",
+      "instance_methods": [
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x10029b560"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x10029b588"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x10029b5e0"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x10029b628"
+        }
+      ]
+    },
+    {
+      "name": "_TtCV4anki11BackendDeckP33_4F4882CE1DFA422D0647931B35317D4913_StorageClass",
+      "address": "0x10187adb8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki22StudyViewWebController",
+      "address": "0x10184c758",
+      "instance_methods": [
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1002b8b30"
+        },
+        {
+          "selector": "gestureRecognizer:shouldRecognizeSimultaneouslyWithGestureRecognizer:",
+          "implementation": "0x1002b8b60"
+        },
+        {
+          "selector": "gestureRecognizerShouldBegin:",
+          "implementation": "0x1002b8cac"
+        },
+        {
+          "selector": "onSwipeLeft:",
+          "implementation": "0x1002b92ac"
+        },
+        {
+          "selector": "onSwipeRight:",
+          "implementation": "0x1002b9318"
+        },
+        {
+          "selector": "onSwipeUp:",
+          "implementation": "0x1002b9384"
+        },
+        {
+          "selector": "onSwipeDown:",
+          "implementation": "0x1002b93ec"
+        },
+        {
+          "selector": "webView:decidePolicyForNavigationAction:decisionHandler:",
+          "implementation": "0x1002b957c"
+        },
+        {
+          "selector": "userContentController:didReceiveScriptMessage:",
+          "implementation": "0x1002b99f8"
+        },
+        {
+          "selector": "webViewWebContentProcessDidTerminate:",
+          "implementation": "0x1002ba18c"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1002ba29c"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1002ba2fc"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002ba364"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki14ScratchpadView",
+      "address": "0x10184c820",
+      "instance_methods": [
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1002bca20"
+        },
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x1002bcce8"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002bcd40"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki18AnswerButtonsStack",
+      "address": "0x10184caa8",
+      "instance_methods": [
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1002be680"
+        },
+        {
+          "selector": "onTapWithSender:",
+          "implementation": "0x1002beaf4"
+        },
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x1002bf150"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002bf17c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki19RemainingCountsView",
+      "address": "0x10184cb68",
+      "instance_methods": [
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1002bfedc"
+        },
+        {
+          "selector": "onTap",
+          "implementation": "0x1002c0160"
+        },
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x1002c0404"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002c0430"
+        }
+      ]
+    },
+    {
+      "name": "_TtCVV4anki17BackendDeckConfig6ConfigP33_6C7AB6E10A75C3824C7006947BB3E97813_StorageClass",
+      "address": "0x10187b720",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV4anki27BackendDeckConfigsForUpdateP33_6C7AB6E10A75C3824C7006947BB3E97813_StorageClass",
+      "address": "0x10187bd40",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV4anki31BackendUpdateDeckConfigsRequestP33_6C7AB6E10A75C3824C7006947BB3E97813_StorageClass",
+      "address": "0x10187bf40",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4anki14ToolButtonView",
+      "address": "0x10184cc30",
+      "instance_methods": [
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1002cf7b8"
+        },
+        {
+          "selector": "onTap",
+          "implementation": "0x1002cf7f4"
+        },
+        {
+          "selector": "onTapUndo",
+          "implementation": "0x1002cfa04"
+        },
+        {
+          "selector": "onLongPressUndoWithGr:",
+          "implementation": "0x1002cfbb8"
+        },
+        {
+          "selector": "hitTest:withEvent:",
+          "implementation": "0x1002cfc08"
+        },
+        {
+          "selector": "initWithFrame:",
+          "implementation": "0x1002cfd24"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002cfd50"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki21BasePreviewController",
+      "address": "0x10184cd20",
+      "instance_methods": [
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1002d33c4"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1002d34cc"
+        },
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x1002d3c18"
+        },
+        {
+          "selector": "viewDidDisappear:",
+          "implementation": "0x1002d3d28"
+        },
+        {
+          "selector": "viewDidLayoutSubviews",
+          "implementation": "0x1002d3f6c"
+        },
+        {
+          "selector": "webView:decidePolicyForNavigationAction:decisionHandler:",
+          "implementation": "0x1002d3f94"
+        },
+        {
+          "selector": "userContentController:didReceiveScriptMessage:",
+          "implementation": "0x1002d4024"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1002d51bc"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002d5220"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki21EditViewWebController",
+      "address": "0x10184cee0",
+      "instance_methods": [
+        {
+          "selector": "web",
+          "implementation": "0x1002d6268"
+        },
+        {
+          "selector": "setWeb:",
+          "implementation": "0x1002d6278"
+        },
+        {
+          "selector": "viewDidLoad",
+          "implementation": "0x1002d62ac"
+        },
+        {
+          "selector": "webViewWebContentProcessDidTerminate:",
+          "implementation": "0x1002d6fec"
+        },
+        {
+          "selector": "userContentController:didReceiveScriptMessage:",
+          "implementation": "0x1002d70ac"
+        },
+        {
+          "selector": "webView:didFinishNavigation:",
+          "implementation": "0x1002d7114"
+        },
+        {
+          "selector": "webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:",
+          "implementation": "0x1002d7178"
+        },
+        {
+          "selector": "viewDidAppear:",
+          "implementation": "0x1002d74f8"
+        },
+        {
+          "selector": "dropInteraction:canHandleSession:",
+          "implementation": "0x1002d7a24"
+        },
+        {
+          "selector": "dropInteraction:sessionDidUpdate:",
+          "implementation": "0x1002d7ba4"
+        },
+        {
+          "selector": "dropInteraction:performDrop:",
+          "implementation": "0x1002d9918"
+        },
+        {
+          "selector": "dropInteraction:sessionDidEnter:",
+          "implementation": "0x1002d997c"
+        },
+        {
+          "selector": "dropInteraction:sessionDidExit:",
+          "implementation": "0x1002d9a74"
+        },
+        {
+          "selector": "dropInteraction:concludeDrop:",
+          "implementation": "0x1002d9a80"
+        },
+        {
+          "selector": "dropInteraction:sessionDidEnd:",
+          "implementation": "0x1002d9a8c"
+        },
+        {
+          "selector": "dropInteraction:previewForDroppingItem:withDefault:",
+          "implementation": "0x1002d9c1c"
+        },
+        {
+          "selector": "dropInteraction:item:willAnimateDropWithAnimator:",
+          "implementation": "0x1002d9dac"
+        },
+        {
+          "selector": "initWithNibName:bundle:",
+          "implementation": "0x1002d9f24"
+        },
+        {
+          "selector": "initWithCoder:",
+          "implementation": "0x1002da030"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002da058"
+        }
+      ]
+    },
+    {
+      "name": "_TtCC4anki21EditViewWebControllerP33_A89FB5471FB5C4B76E5E77A5A342FFF83Gif",
+      "address": "0x10184cfb8",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x1002d7608"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002d7640"
+        }
+      ]
+    },
+    {
+      "name": "_TtCC4anki21EditViewWebControllerP33_A89FB5471FB5C4B76E5E77A5A342FFF88HtmlFrag",
+      "address": "0x10184d078",
+      "instance_methods": [
+        {
+          "selector": "init",
+          "implementation": "0x1002d7744"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002d777c"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki22MultiPreviewController",
+      "address": "0x10184d138",
+      "instance_methods": [
+        {
+          "selector": "keyCommands",
+          "implementation": "0x1002dc6e8"
+        },
+        {
+          "selector": "toggleFlip",
+          "implementation": "0x1002dc9a0"
+        },
+        {
+          "selector": "goForwards",
+          "implementation": "0x1002dcf7c"
+        },
+        {
+          "selector": "goBackwards",
+          "implementation": "0x1002dd524"
+        },
+        {
+          "selector": "goToStart",
+          "implementation": "0x1002dd9f0"
+        },
+        {
+          "selector": "goToEnd",
+          "implementation": "0x1002ddf04"
+        },
+        {
+          "selector": "viewWillAppear:",
+          "implementation": "0x1002dee70"
+        },
+        {
+          "selector": "viewWillDisappear:",
+          "implementation": "0x1002deedc"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1002def98"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002deff4"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki15RepositionCards",
+      "address": "0x10184d328",
+      "instance_methods": [
+        {
+          "selector": "setupConfigTable:",
+          "implementation": "0x1002e0bb4"
+        },
+        {
+          "selector": "onProceed",
+          "implementation": "0x1002e141c"
+        },
+        {
+          "selector": "init",
+          "implementation": "0x1002e1550"
+        },
+        {
+          "selector": ".cxx_destruct",
+          "implementation": "0x1002e15ac"
+        }
+      ]
+    },
+    {
+      "name": "_TtC4anki17CollectionManager",
+      "address": "0x10187c9f0",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC4ankiP33_10ED7906E722B5DCB64CD21F17EFD2E419ResourceBundleClass",
+      "address": "0x10187cb38",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC13SwiftProtobufP33_68DB9378B23160B347B68EB8640211AC12BundleFinder",
+      "address": "0x101883d10",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC13SwiftProtobuf17AnyMessageStorage",
+      "address": "0x101883da8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC13SwiftProtobuf12DoubleParser",
+      "address": "0x101884128",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC13SwiftProtobufP33_ACE262E8B2F1F7C26CC1ADDF6C99D01E10InternPool",
+      "address": "0x101885320",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV13SwiftProtobuf18SwiftProtobufErrorP33_512E987B28C3713E7A72846D2A462DFE7Storage",
+      "address": "0x101885598",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV13SwiftProtobuf31Google_Protobuf_DescriptorProtoP33_DC8661342CA8480725FF8D5BB36F322A13_StorageClass",
+      "address": "0x101885ed8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV13SwiftProtobuf27Google_Protobuf_FileOptionsP33_DC8661342CA8480725FF8D5BB36F322A13_StorageClass",
+      "address": "0x1018860b8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtCV13SwiftProtobuf28Google_Protobuf_FieldOptionsP33_DC8661342CA8480725FF8D5BB36F322A13_StorageClass",
+      "address": "0x1018863f8",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC5KannaP33_809B40B3C7603C5CA1EFE6439CC23D8412BundleFinder",
+      "address": "0x101886d58",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC5Kanna10XMLNodeSet",
+      "address": "0x101886f50",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC5Kanna18libxmlHTMLDocument",
+      "address": "0x101887038",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC5Kanna17libxmlXMLDocument",
+      "address": "0x101887110",
+      "instance_methods": []
+    },
+    {
+      "name": "_TtC5Kanna14libxmlHTMLNode",
+      "address": "0x1018871e8",
+      "instance_methods": []
+    }
+  ]
+}

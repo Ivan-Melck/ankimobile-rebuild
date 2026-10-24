@@ -2,6 +2,8 @@
 
 The independent byte reader in `scripts/inspect_objc.py` decoded all 150 entries in the supplied binary's Objective-C class list without a class-level parsing error. It found 626 instance-method records. These are runtime-visible Objective-C/Swift bridge methods, not an inventory of every Swift or Rust function. The binary has additional native code outside this list.
 
+The complete class/method address report is in [native-inventory.json](native-inventory.json). It contains factual metadata, not original executable bytes or pseudocode.
+
 Selected mappings from that metadata:
 
 | Class | Selector | Implementation VA |
