@@ -17,6 +17,9 @@ public enum NoteKind: String, Codable, CaseIterable, Sendable {
 public struct DeckOptions: Codable, Equatable, Sendable {
     public var newCardsPerDay: Int
     public var reviewCardsPerDay: Int
+    public var scheduling: SchedulingOptions?
+    public var presetID: UUID?
+    public var rules: [SchedulingRule]?
     public init(newCardsPerDay: Int = 20, reviewCardsPerDay: Int = 200) {
         self.newCardsPerDay = newCardsPerDay
         self.reviewCardsPerDay = reviewCardsPerDay

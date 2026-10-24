@@ -161,6 +161,9 @@ final class ReviewerController: UIViewController, UIGestureRecognizerDelegate {
                 editor.onSave = { [weak self] in self?.currentFromStore(current.card.id) }
                 self.present(UINavigationController(rootViewController: editor), animated: true)
             })
+            sheet.addAction(UIAlertAction(title: "Card Insights", style: .default) { [weak self] _ in
+                guard let self else { return }; self.navigationController?.pushViewController(CardInsightsController(model: self.model, cardID: current.id), animated: true)
+            })
             sheet.addAction(UIAlertAction(title: "Bury Card", style: .default) { [weak self] _ in
                 guard let self = self else { return }
                 do { try self.model.store.bury(cardID: current.card.id, until: Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date()))!); self.nextCard() } catch { self.showError(error) }

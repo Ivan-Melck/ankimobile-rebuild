@@ -16,6 +16,7 @@ struct CollectionDocument: Codable {
     var cards: [Card] = []
     var reviewLogs: [ReviewLog] = []
     var undo: ReviewUndo?
+    var schedulingPresets: [SchedulingPreset]?
 
     static func empty() -> CollectionDocument {
         let deck = Deck(name: "Default")
@@ -33,6 +34,7 @@ public final class CollectionStore {
     private let scheduler: any ReviewScheduler
     private let lock = NSRecursiveLock()
     private var document: CollectionDocument
+    var documentForPlanning: CollectionDocument { document }
 
     public init(fileURL: URL? = nil, scheduler: any ReviewScheduler = ApproximateLocalScheduler(), calendar: Calendar = .current) throws {
         self.fileURL = fileURL; self.scheduler = scheduler; self.calendar = calendar
@@ -154,7 +156,8 @@ public final class CollectionStore {
     public func scheduledDelay(cardID: UUID, rating: ReviewRating, now: Date = Date()) -> TimeInterval? {
         locked {
             guard let card = document.cards.first(where: { $0.id == cardID }) else { return nil }
-            let delay = scheduler.schedule(card: card, rating: rating, at: now).due.timeIntervalSince(now)
+            guard let next = try? advancedSchedule(card: card, rating: rating, now: now, doc: document) ?? scheduler.schedule(card: card, rating: rating, at: now) else { return nil }
+            let delay = next.due.timeIntervalSince(now)
             return delay.isFinite && delay > 0 ? delay : nil
         }
     }
@@ -164,10 +167,10 @@ public final class CollectionStore {
             guard durationSeconds.isFinite, durationSeconds >= 0, now.timeIntervalSince1970.isFinite else { throw CollectionError.invalidInput("Invalid review time.") }
             guard let index = doc.cards.firstIndex(where: { $0.id == cardID }) else { throw CollectionError.notFound("Card not found.") }
             let old = doc.cards[index]
-            guard !old.suspended, !old.isBuried(at: now), old.state == .new || old.due <= now else {
+            guard !old.suspended, !old.isBuried(at: now), old.state == .new || old.due <= now || Self.options(in: doc, deckID: old.deckID, card: old, now: now).engine == .rwkvInstant else {
                 throw CollectionError.invalidInput("This card is suspended, buried, or not due yet.")
             }
-            let next = scheduler.schedule(card: old, rating: rating, at: now)
+            let next = try advancedSchedule(card: old, rating: rating, now: now, doc: doc) ?? scheduler.schedule(card: old, rating: rating, at: now)
             guard next.id == old.id, next.noteID == old.noteID, next.deckID == old.deckID,
                   next.templateIndex == old.templateIndex, next.suspended == old.suspended, next.flag == old.flag,
                   next.due > now else { throw CollectionError.invalidInput("The scheduler returned an invalid card.") }
@@ -300,20 +303,56 @@ public final class CollectionStore {
     static func queue(in doc: CollectionDocument, deckID: UUID?, now: Date, calendar: Calendar) -> [StudyCard] {
         let day = calendar.startOfDay(for: now)
         let logs = doc.reviewLogs.filter { $0.reviewedAt >= day && $0.reviewedAt <= now }
-        var allowed = Set<UUID>()
+        var output: [StudyCard] = []
+        let all = studyCards(in: doc)
         for deck in doc.decks where deckID == nil || deck.id == deckID {
-            let candidates = doc.cards.filter { $0.deckID == deck.id && !$0.suspended && !$0.isBuried(at: now) }
+            let options = Self.options(in: doc, deckID: deck.id)
+            var scores: [UUID: Double] = [:]
+            let candidates = all.filter { item in
+                let card = item.card
+                guard card.deckID == deck.id, !card.suspended, !card.isBuried(at: now) else { return false }
+                let effective = Self.options(in: doc, deckID: deck.id, card: card, now: now)
+                if let index = doc.reviewLogs.lastIndex(where: { $0.cardID == card.id }) {
+                    let last = doc.reviewLogs[index]
+                    if now.timeIntervalSince(last.reviewedAt) < Double(effective.minimumSeconds) { return false }
+                    let intervening = doc.reviewLogs.suffix(from: index + 1).filter { $0.cardID != card.id && $0.reviewedAt <= now }.count
+                    if intervening < effective.minimumOtherReviews { return false }
+                }
+                let needsScore = effective.engine == .rwkvInstant || options.reviewOrder == .lowRecall || options.reviewOrder == .relativeOverdueness
+                if needsScore, effective.engine != .legacy, card.state != .new,
+                   let request = try? NativeScheduling.request(op: "predict", doc: doc, options: effective, deckID: deck.id, card: card, now: now),
+                   let prediction = try? NativeScheduling.call(request, as: MemoryPrediction.self), let recall = prediction.retrievability {
+                    scores[card.id] = options.reviewOrder == .relativeOverdueness ? recall / effective.desiredRetention : recall
+                    if effective.engine == .rwkvInstant, card.state == .review { return recall <= effective.desiredRetention }
+                }
+                return card.state == .new || card.due <= now
+            }
             let introduced = Set(logs.filter { $0.deckID == deck.id && $0.previousState == .new }.map(\.cardID)).count
             let reviewed = Set(logs.filter { $0.deckID == deck.id && $0.previousState == .review }.map(\.cardID)).count
-            let new = candidates.filter { $0.state == .new }.sorted(by: cardOrder).prefix(max(0, deck.options.newCardsPerDay - introduced))
-            let review = candidates.filter { $0.state == .review && $0.due <= now }.sorted(by: cardOrder).prefix(max(0, deck.options.reviewCardsPerDay - reviewed))
-            let learning = candidates.filter { ($0.state == .learning || $0.state == .relearning) && $0.due <= now }
-            allowed.formUnion((Array(new) + Array(review) + learning).map(\.id))
+            let new = candidates.filter { $0.card.state == .new }.sorted { cardOrder($0.card, $1.card) }.prefix(max(0, deck.options.newCardsPerDay - introduced))
+            let reviews = candidates.filter { $0.card.state == .review }.sorted {
+                switch options.reviewOrder {
+                case .lowRecall, .relativeOverdueness:
+                    if let a = scores[$0.id], let b = scores[$1.id], a != b { return a < b }
+                case .intervalAscending: if $0.card.intervalDays != $1.card.intervalDays { return $0.card.intervalDays < $1.card.intervalDays }
+                case .intervalDescending: if $0.card.intervalDays != $1.card.intervalDays { return $0.card.intervalDays > $1.card.intervalDays }
+                case .due: break
+                }
+                return cardOrder($0.card, $1.card)
+            }.prefix(max(0, deck.options.reviewCardsPerDay - reviewed))
+            let learning = candidates.filter { $0.card.state == .learning || $0.card.state == .relearning }.sorted { cardOrder($0.card, $1.card) }
+            switch options.learningOrder {
+            case .before: output += learning + Array(reviews) + Array(new)
+            case .after: output += Array(reviews) + learning + Array(new)
+            case .mixed:
+                var mixed: [StudyCard] = []; let revs = Array(reviews)
+                for i in 0..<max(learning.count, revs.count) {
+                    if i < revs.count { mixed.append(revs[i]) }; if i < learning.count { mixed.append(learning[i]) }
+                }
+                output += mixed + Array(new)
+            }
         }
-        return studyCards(in: doc).filter { allowed.contains($0.id) }.sorted {
-            let lhs = priority($0.card.state), rhs = priority($1.card.state)
-            return lhs == rhs ? cardOrder($0.card, $1.card) : lhs < rhs
-        }
+        return output
     }
 
     private static func priority(_ state: CardState) -> Int {
@@ -371,7 +410,14 @@ public final class CollectionStore {
         let deckIDs = Set(doc.decks.map(\.id)), noteIDs = Set(doc.notes.map(\.id))
         try require(deckIDs.contains(doc.defaultDeckID), "The collection is missing its default deck.")
         var names = Set<String>()
+        for preset in doc.schedulingPresets ?? [] { try preset.options.validate() }
         for deck in doc.decks {
+            try deck.options.scheduling?.validate()
+            for rule in deck.options.rules ?? [] {
+                try require(!rule.query.isEmpty && rule.retention.isFinite && (0.7...0.99).contains(rule.retention), "Invalid scheduling rule.")
+                try require(rule.presetID == nil || (doc.schedulingPresets ?? []).contains(where: { $0.id == rule.presetID }), "Missing rule preset.")
+            }
+            try require(deck.options.presetID == nil || (doc.schedulingPresets ?? []).contains(where: { $0.id == deck.options.presetID }), "Missing scheduling preset.")
             let name = deck.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             try require(!name.isEmpty && names.insert(name).inserted, "Deck names must be nonempty and unique.")
             try require(deck.options.newCardsPerDay >= 0 && deck.options.reviewCardsPerDay >= 0 && deck.createdAt.timeIntervalSince1970.isFinite, "Invalid deck options or date.")

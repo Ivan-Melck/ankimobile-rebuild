@@ -20,3 +20,5 @@ xcuserdata/
 # Python analysis helper caches
 __pycache__/
 *.pyc
+
+NativeEngine/target/

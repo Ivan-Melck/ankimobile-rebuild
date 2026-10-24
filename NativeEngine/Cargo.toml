@@ -1,0 +1,25 @@
+[package]
+name = "scheduling_engine"
+version = "0.1.0"
+edition = "2024"
+license = "AGPL-3.0-or-later"
+[lib]
+crate-type = ["staticlib", "rlib"]
+test = false
+[features]
+default = ["rwkv-sm40"]
+rwkv-sm40 = []
+validation = ["dep:flate2"]
+[dependencies]
+fsrs = { git = "https://github.com/open-spaced-repetition/fsrs-rs", rev = "0a5737406a0c5c7a5259b144738cbe4a0b649d76" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rayon = "1.12"
+rusqlite = { version = "0.37", features = ["bundled", "blob"] }
+half = "2"
+blake3 = "1"
+tracing = "0.1"
+tempfile = "3"
+flate2 = { version = "1", optional = true }
+[profile.release]
+opt-level = 3

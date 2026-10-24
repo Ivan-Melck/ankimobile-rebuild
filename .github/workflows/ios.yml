@@ -11,9 +11,17 @@ concurrency:
 jobs:
   test:
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: NativeEngine
+      - name: Check neural predictions against fork vectors
+        run: cargo test --release --locked --manifest-path NativeEngine/Cargo.toml --features validation --test parity
+      - name: Build scheduling engines
+        run: scripts/build-native.sh
       - name: Core behavior tests
         run: swift test
       - name: Generate Xcode project

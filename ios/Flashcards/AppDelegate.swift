@@ -14,7 +14,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             if testing { UserDefaults.standard.removeObject(forKey: "appearance") }
             let collectionURL = directory.appendingPathComponent(testing ? "ui-test-collection.json" : "collection.json")
             if ProcessInfo.processInfo.arguments.contains("--reset-test-collection"), FileManager.default.fileExists(atPath: collectionURL.path) { try FileManager.default.removeItem(at: collectionURL) }
+            let fresh = !FileManager.default.fileExists(atPath: collectionURL.path)
             let store = try CollectionStore(fileURL: collectionURL)
+            if fresh { var options = DeckOptions(); options.scheduling = SchedulingOptions(); try store.updateDeckOptions(id: store.defaultDeckID, options: options) }
             let model = AppModel(store: store)
             let navigation = UINavigationController(rootViewController: DecksController(model: model))
             navigation.navigationBar.prefersLargeTitles = false

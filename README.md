@@ -2,13 +2,16 @@
 
 An editable native iOS flashcard app reconstructed from static analysis of the supplied AnkiMobile 25.09 IPA with [REA](https://github.com/morluto/rea), Ghidra, and Apple's compiled resource metadata.
 
-**This is an initial functional reconstruction, not a complete or pixel-verified AnkiMobile replacement.** It implements the main local flashcard flows. AnkiWeb sync, APKG/SQLite compatibility, FSRS, media, and many advanced Anki features remain unimplemented. See [fidelity and evidence](docs/analysis.md).
+**This is an initial functional reconstruction, not a complete or pixel-verified AnkiMobile replacement.** It implements the main local flashcard flows. AnkiWeb sync, APKG/SQLite compatibility, and media remain unimplemented. The native scheduling integration adds features from [JSchoreels/anki](https://github.com/JSchoreels/anki); see [the feature map and remaining differences](docs/fork-integration.md). See [fidelity and evidence](docs/analysis.md).
 
 ## Build for iPhone or iPad
 
 On a Mac with Xcode 16.4 (or newer) and an iOS simulator runtime installed:
 
 ```sh
+brew install xcodegen
+# Install Rust via rustup if needed: https://rustup.rs
+xcodegen generate
 open Flashcards.xcodeproj
 ```
 
@@ -34,7 +37,7 @@ Select the `Flashcards` scheme and an iPhone/iPad simulator, then Run. For a phy
 - System/light/dark appearance and adjustable card text size.
 - Atomic persistent storage and validation before backup replacement.
 
-Scheduling uses a small documented local approximation. **It does not reproduce Anki/FSRS intervals.** JSON backups are specific to this rebuild. CSV imports create Basic notes; CSV exports preserve fields and tags, not note types or scheduling.
+Fresh app collections use **FSRS-7**. Deck Options also offers FSRS-6, RWKV Curve, RWKV Instant, and the original Classic approximation. Study Plan compares retention against workload; saved presets, ordered card rules, repeat spacing, calibration, and FSRS optimization are included. The actual fork inference engines run locally in Rust. Older rebuild backups retain Classic until you select a memory model. JSON backups are specific to this rebuild. CSV imports create Basic notes; CSV exports preserve fields and tags, not note types or scheduling.
 
 ## Make changes
 
@@ -44,15 +47,18 @@ Scheduling uses a small documented local approximation. **It does not reproduce 
 | Card font, spacing, colors | `ios/Flashcards/Resources/reviewer.css` |
 | Theme and preferences | `ios/Flashcards/Support/AppModel.swift` |
 | Card templates and cloze rendering | `Sources/FlashcardsCore/Rendering.swift` |
-| Scheduling engine | `Sources/FlashcardsCore/Scheduler.swift` |
+| Scheduling policy and engine bridge | `Sources/FlashcardsCore/StudyPlanning.swift`, `NativeEngine/src/lib.rs` |
+| Classic approximation | `Sources/FlashcardsCore/Scheduler.swift` |
 | Models and collection format | `Sources/FlashcardsCore/Models.swift`, `CollectionStore.swift` |
 | Search / CSV | `Search.swift`, `DelimitedText.swift` |
 | Build settings and targets | `project.yml` |
 
-`ReviewScheduler` is injected into `CollectionStore`, allowing a replacement scheduler without changing screens. The core is a standalone Swift package with no UIKit dependency:
+`ReviewScheduler` is injected for Classic scheduling. Modern scheduling is configured through typed `SchedulingOptions` and a small JSON C ABI, keeping native UI, scheduling policy, and inference code separate. The core is a standalone Swift package with no UIKit dependency:
 
 ```sh
+scripts/build-native.sh
 swift test
+cargo test --release --locked --manifest-path NativeEngine/Cargo.toml --features validation --test parity
 ```
 
 See [architecture](docs/architecture.md), [analysis and fidelity](docs/analysis.md), [verification](docs/verification.md), and [local REA workflow](docs/reproduce-analysis.md). No supplied IPA, original executable, extracted assets, or decompiled original code is published in this repository.
@@ -62,3 +68,5 @@ See [architecture](docs/architecture.md), [analysis and fidelity](docs/analysis.
 Captured from the rebuilt app on an iPhone 16 Pro simulator.
 
 <img src="docs/screenshots/decks.png" width="240" alt="Deck list in the rebuilt iOS app"> <img src="docs/screenshots/answer.png" width="240" alt="Study answer with interval previews in the rebuilt iOS app">
+
+This derivative is licensed under GNU AGPL-3.0-or-later. See [third-party notices](THIRD_PARTY_NOTICES.md) for fork/model provenance.

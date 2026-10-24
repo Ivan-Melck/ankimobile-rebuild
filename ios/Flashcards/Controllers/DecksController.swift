@@ -13,11 +13,12 @@ final class DecksController: UITableViewController {
         tableView.accessibilityIdentifier = "deckList"
         tableView.register(DeckCell.self, forCellReuseIdentifier: "deck")
         tableView.rowHeight = 51
-        let help = UIBarButtonItem(image: UIImage(systemName: "questionmark.circle"), style: .plain, target: self, action: #selector(help))
-        help.accessibilityLabel = "Help"
         let statistics = UIBarButtonItem(image: UIImage(systemName: "chart.bar"), style: .plain, target: self, action: #selector(statistics))
         statistics.accessibilityLabel = "Statistics"
-        navigationItem.leftBarButtonItems = [help, statistics]
+        let plan = UIBarButtonItem(image: UIImage(systemName: "sparkles"), style: .plain, target: self, action: #selector(studyPlan))
+        plan.accessibilityLabel = "Study Plan"
+        navigationItem.leftBarButtonItems = [plan, statistics]
+        tableView.tableHeaderView = PlanningUI.hero(eyebrow: "Make room for remembering", title: "A little every day", detail: "Study your decks, or shape tomorrow’s workload in Study Plan.", symbol: "rectangle.stack")
         let preferences = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(settings))
         preferences.accessibilityLabel = "Settings"
         navigationItem.rightBarButtonItems = [preferences, UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(browse))]
@@ -34,6 +35,7 @@ final class DecksController: UITableViewController {
         tableView.reloadData()
     }
     @objc private func refreshDecks() { tableView.reloadData(); refreshControl?.endRefreshing() }
+    @objc private func studyPlan() { navigationController?.pushViewController(StudyPlanController(model: model), animated: true) }
     @objc private func settings() { navigationController?.pushViewController(SettingsController(model: model), animated: true) }
     @objc private func browse() { navigationController?.pushViewController(BrowserController(model: model), animated: true) }
     @objc private func statistics() { navigationController?.pushViewController(StatisticsController(model: model), animated: true) }
