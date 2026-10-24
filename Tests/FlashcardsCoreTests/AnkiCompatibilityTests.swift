@@ -253,7 +253,12 @@ final class AnkiCompatibilityTests: XCTestCase {
         try b.updateNote(noteB)
         _ = try a.sync(auth: authA); _ = try b.sync(auth: authB); _ = try a.sync(auth: authA)
         XCTAssertEqual(try a.getNote(nid)["fields"], try b.getNote(nid)["fields"], "Both clients must converge after a conflicting edit")
+        // The pinned backend compares collection mtimes at millisecond
+        // resolution. Separate this user action from the preceding sync;
+        // same-millisecond mutations are a documented upstream race.
+        Thread.sleep(forTimeInterval: 0.01)
         try b.backend.call("Notes", "RemoveNotes", ["noteIds": .array([.string(nid)])])
+        XCTAssertThrowsError(try b.getNote(nid), "The local deletion must complete before syncing")
         _ = try b.sync(auth: authB); _ = try a.sync(auth: authA)
         XCTAssertThrowsError(try a.getNote(nid))
         try finishMedia(a); try finishMedia(b)
