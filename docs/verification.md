@@ -14,6 +14,8 @@ The [native UI run at 9a7ccce](https://github.com/Ivan-Melck/ankimobile-rebuild/
 
 The [expanded native run at 2f6e509](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40134642699) passed the native create/review/grade/undo/edit/restart flow, typed answers, options/sync navigation, local image/audio loading, sequential playback without overlap, algebra/chemistry typesetting and all three legacy flows. Its image-occlusion fixture failed with a blank canvas. A browser reproduction identified stalled animation-frame setup; the renderer now has a bounded one-shot fallback. This fix and a direct iOS RWKV Instant/FSRS-6 persistence fixture are awaiting the next simulator result.
 
+The [run at dfa1c0a](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40137129213) passed the native image-occlusion mask/reveal and RWKV Instant/FSRS-6 review-persistence fixtures, plus six other UI flows. The create/review test caught an intermittent blank WebKit document after saving correctly entered fields. The next change delays initial review preparation until the screen is onscreen, validates document readiness, retries a missing document once, handles content-process termination and withholds answer controls while loading. Its simulator rerun is pending.
+
 This validates preservation for that fixture. Live AnkiWeb, exact desktop RWKV review-order parity, filtered/same-day edge cases and complete rendering/UI parity remain outstanding. See the [compatibility inventory](compatibility.md).
 
 ## Fork integration

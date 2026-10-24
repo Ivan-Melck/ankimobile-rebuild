@@ -8,12 +8,18 @@ import FlashcardsCore
 final class AnkiCardWebView: WKWebView, WKNavigationDelegate, WKScriptMessageHandler {
     var onReveal: (() -> Void)?
     var onError: ((Error) -> Void)?
+    var onLoading: (() -> Void)?
+    var onReady: (() -> Void)?
     var onSpeak: ((Bool, Int) -> Void)?
     private var audio: AVAudioPlayer?
     private let media: URL
     private let workspace = FileManager.default.temporaryDirectory.appendingPathComponent("anki-viewer-" + UUID().uuidString, isDirectory: true)
     private var prepared = false
     private var documentURL: URL?
+    private var documentReady = false
+    private var pendingLoad = false
+    private var loadRetries = 0
+    private var loadWatchdog: DispatchWorkItem?
     init(media: URL) {
         self.media = media
         let config = WKWebViewConfiguration()
@@ -47,6 +53,10 @@ final class AnkiCardWebView: WKWebView, WKNavigationDelegate, WKScriptMessageHan
         navigationDelegate = self; isOpaque = false; backgroundColor = .systemBackground; accessibilityIdentifier = "ankiReviewCard"
     }
     required init?(coder: NSCoder) { fatalError() }
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if window != nil, pendingLoad { loadDocument() }
+    }
     func show(_ html: String, css: String, dark: Bool, ordinal: Int = 0) {
         let platform = UIDevice.current.userInterfaceIdiom == .pad ? "ipad" : "iphone"
         let math = html.contains("\\(") || html.contains("\\[")
@@ -58,9 +68,36 @@ final class AnkiCardWebView: WKWebView, WKNavigationDelegate, WKScriptMessageHan
             try prepareWorkspace()
             let next = workspace.appendingPathComponent(".review-\(UUID().uuidString).html"), previous = documentURL
             try document.write(to: next, atomically: true, encoding: .utf8)
-            documentURL = next; loadFileURL(next, allowingReadAccessTo: workspace)
+            loadWatchdog?.cancel(); documentReady = false; loadRetries = 0
+            documentURL = next; pendingLoad = true; onLoading?()
+            if window != nil { loadDocument() }
             if let previous { try? FileManager.default.removeItem(at: previous) }
         } catch { prepared = false; try? FileManager.default.removeItem(at: workspace); report(error) }
+    }
+    private func loadDocument() {
+        guard window != nil, let expected = documentURL else { pendingLoad = true; return }
+        pendingLoad = false; loadWatchdog?.cancel()
+        loadFileURL(expected, allowingReadAccessTo: workspace)
+        let check = DispatchWorkItem { [weak self] in self?.validateDocument(expected) }
+        loadWatchdog = check; DispatchQueue.main.asyncAfter(deadline: .now() + 8, execute: check)
+    }
+    private func validateDocument(_ expected: URL) {
+        guard documentURL == expected, !documentReady else { return }
+        guard url?.lastPathComponent == expected.lastPathComponent else { recoverDocument(expected); return }
+        evaluateJavaScript("Boolean(document.getElementById('qa'))") { [weak self] value, _ in
+            guard let self, self.documentURL == expected, !self.documentReady else { return }
+            if value as? Bool == true {
+                self.documentReady = true; self.loadWatchdog?.cancel(); self.onReady?()
+            } else { self.recoverDocument(expected) }
+        }
+    }
+    private func recoverDocument(_ expected: URL) {
+        guard documentURL == expected else { return }
+        loadWatchdog?.cancel(); documentReady = false; onLoading?()
+        guard loadRetries == 0 else {
+            report(CollectionError.invalidInput("The card document could not load. Reload the review to try again.")); return
+        }
+        loadRetries += 1; stopLoading(); pendingLoad = true; loadDocument()
     }
     private func prepareWorkspace() throws {
         guard !prepared else { return }
@@ -83,7 +120,7 @@ final class AnkiCardWebView: WKWebView, WKNavigationDelegate, WKScriptMessageHan
     }
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let command = message.body as? String else { return }
-        if command == "ans" { onReveal?() }
+        if command == "ans", documentReady { onReveal?() }
         else if command.hasPrefix("tts:") {
             let parts = command.split(separator: ":")
             if parts.count == 3, ["q", "a"].contains(String(parts[1])), let index = Int(parts[2]), index >= 0 { onSpeak?(parts[1] == "q", index) }
@@ -94,7 +131,13 @@ final class AnkiCardWebView: WKWebView, WKNavigationDelegate, WKScriptMessageHan
             audio = try? AVAudioPlayer(contentsOf: file); audio?.play()
         }
     }
-    func detach() { stopLoading(); configuration.userContentController.removeScriptMessageHandler(forName: "anki"); audio?.stop(); try? FileManager.default.removeItem(at: workspace) }
+    func detach() { documentURL = nil; pendingLoad = false; loadWatchdog?.cancel(); stopLoading(); configuration.userContentController.removeScriptMessageHandler(forName: "anki"); audio?.stop(); try? FileManager.default.removeItem(at: workspace) }
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if let expected = documentURL, url?.lastPathComponent == expected.lastPathComponent { validateDocument(expected) }
+    }
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        if let expected = documentURL { recoverDocument(expected) }
+    }
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) { report(error) }
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { report(error) }
     private func report(_ error: Error) {

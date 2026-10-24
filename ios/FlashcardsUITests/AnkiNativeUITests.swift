@@ -81,6 +81,7 @@ final class AnkiNativeUITests: XCTestCase {
         let app = XCUIApplication(); app.launchArguments = ["--anki-testing", "--reset-test-collection", "--anki-rwkv-fixture"]; app.launch()
         XCTAssertTrue(app.tables["ankiDeckList"].waitForExistence(timeout: 15)); app.tables["ankiDeckList"].cells.firstMatch.tap()
         XCTAssertTrue(app.buttons["ankiShowAnswer"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.webViews.staticTexts["RWKV Instant on iOS"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["ankiReviewStatus"].label.contains("RWKV Instant · FSRS-6"))
         app.buttons["ankiShowAnswer"].tap(); app.buttons["ankiRate.4"].tap()
         XCTAssertTrue(app.buttons["ankiStudyDone"].waitForExistence(timeout: 15) || app.buttons["ankiShowAnswer"].exists)

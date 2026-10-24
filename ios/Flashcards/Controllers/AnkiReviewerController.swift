@@ -17,8 +17,11 @@ final class AnkiReviewerController: UIViewController, AVSpeechSynthesizerDelegat
     override func viewDidLoad() {
         super.viewDidLoad(); view.backgroundColor = .systemBackground
         web = AnkiCardWebView(media: state.collection.mediaURL); web.onReveal = { [weak self] in self?.reveal() }
+        web.onLoading = { [weak self] in self?.controls.isHidden = true }
+        web.onReady = { [weak self] in self?.controls.isHidden = false }
         web.onError = { [weak self] error in
             guard let self else { return }; self.queued = nil
+            self.controls.isHidden = false
             self.controls.arrangedSubviews.forEach { $0.removeFromSuperview() }
             self.controls.addArrangedSubview(Theme.button("Reload Card", identifier: "ankiReloadCard", action: UIAction { [weak self] _ in self?.next() }))
             self.showError(error)
@@ -31,11 +34,12 @@ final class AnkiReviewerController: UIViewController, AVSpeechSynthesizerDelegat
         NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor), stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor), stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor), stack.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -10)])
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(actions)); navigationItem.rightBarButtonItem?.accessibilityLabel = "Study Actions"
     }
-    override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); navigationController?.setToolbarHidden(true, animated: animated); next() }
+    override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); navigationController?.setToolbarHidden(true, animated: animated) }
+    override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); next() }
     override func viewDidDisappear(_ animated: Bool) { super.viewDidDisappear(animated); activeSpeech = nil; audio?.stop(); speech.stopSpeaking(at: .immediate); web.evaluateJavaScript("window.__ankiCancelAutoplay?.()") }
     private func next() {
         guard !loading else { return }; loading = true; queued = nil; revealed = false; answerShownAt = nil
-        controls.arrangedSubviews.forEach { $0.removeFromSuperview() }; counts.text = "Preparing your next card…"
+        controls.arrangedSubviews.forEach { $0.removeFromSuperview() }; controls.isHidden = true; counts.text = "Preparing your next card…"
         let model = state.rwkvModel, precision = state.rwkvPrecision
         let collection = state.collection
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
