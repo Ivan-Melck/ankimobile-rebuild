@@ -12,10 +12,10 @@ All evidence paths below are relative to the local `analysis/evidence/` folder, 
 
 | Observation | Evidence | Confidence / limits |
 | --- | --- | --- |
-| Native UIKit deck, study, search, editing, configuration controllers | `strings.txt`, `objc-metadata.txt`, REA native dispatch | Strong class/outlet evidence; dynamic interactions still need device observation |
+| Native UIKit deck, study, search, editing, configuration controllers | `strings.txt`, supplemental `objc-methods-independent.json` | Strong class/outlet evidence; dynamic interactions still need device observation |
 | Study screen contains remaining counts, answer stack, tool buttons, scratchpad and auto-advance state | `StudyViewController` stored-property and selector strings | Strong existence evidence; no claim that all are rebuilt |
 | Card display uses HTML/JS plus native controls | Native `anki.showQuestion`, `bridgeCommand`, DOM-ready/state-mutation strings; shipped reviewer resources | Strong architectural evidence |
-| Deck row uses two right-aligned review/new counters | REA `resource-interface-builder.json`, `DeckCell.nib` UILabels `Rev` and `New` | Exact labels, colors and font metadata recovered; runtime counts/grouping inferred |
+| Deck row uses two right-aligned review/new counters | REA `resource-interface-builder.json`, `DeckCell.nib` UILabels `Rev` and `New` | Exact labels, colors, 51pt design row height and font metadata recovered; runtime counts/grouping inferred |
 | New counter RGB = (36, 111, 225) / 255 | Nib UIColor object 45 | Exact archived value |
 | Review counter RGB = (0, 0.6520253057, 0.06549999957) | Nib UIColor object 41 | Exact archived value |
 | Body font archive is SFUI Regular size 14; expand/collapse button uses SFUI Bold size 15 | Nib UIFont objects 38 and 23 | Exact archive values; dynamic-type behavior not verified |
@@ -30,6 +30,8 @@ The full native import and targeted decompilation results are recorded separatel
 ## Implemented fidelity
 
 The rebuild follows the recovered native navigation/table + web card structure and uses the recovered counter colors. Deck listing, note editing, search, review/reveal/rating, undo, bury, suspend, local statistics and preferences have independent implementations. Source is organized for editing rather than following opaque decompiler output.
+
+The official [deck-list manual](https://docs.ankimobile.net/deck-list.html) and [study-screen manual](https://docs.ankimobile.net/study-screen.html) supplement the binary evidence: the deck header has help/statistics/browser/preferences actions, and study counts are shown at the bottom with interval labels on rating buttons. Those behaviors are implemented, along with card tap reveal and Space/1–4 keyboard controls. The manuals may describe versions newer than the supplied IPA.
 
 No original runtime screenshots were available. The original device IPA cannot be run in an iOS simulator simply by resigning it or changing arm64 architecture; its platform and dependencies target physical devices. GitHub's macOS runner can compile and run the rebuild in a simulator, capture screenshots, and verify flows. It cannot establish a direct visual match to this IPA. Layout, icon choices, screen transitions, and timing are therefore provisional.
 

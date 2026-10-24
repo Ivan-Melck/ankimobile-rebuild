@@ -9,6 +9,7 @@ final class ReviewerController: UIViewController {
     private let web = CardWebView()
     private let controls = UIStackView()
     private let counts = UILabel()
+    private let actions = UIStackView()
     private var shownHTML = ""
     private var startedAt = Date()
 
@@ -18,19 +19,37 @@ final class ReviewerController: UIViewController {
         super.viewDidLoad()
         title = deck.name
         view.backgroundColor = .systemBackground
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(more))
-        navigationItem.rightBarButtonItem?.accessibilityLabel = "Study Actions"
+        let add = UIBarButtonItem(title: "Add", style: .plain, target: self, action: #selector(addNote))
+        let edit = UIBarButtonItem(title: "Edit", style: .plain, target: self, action: #selector(editNote))
+        let browse = UIBarButtonItem(title: "Browse", style: .plain, target: self, action: #selector(browse))
+        navigationItem.rightBarButtonItems = [browse, edit, add]
+        let tools = UIButton(type: .system)
+        tools.setImage(UIImage(systemName: "gearshape"), for: .normal)
+        tools.accessibilityLabel = "Study Actions"
+        tools.addTarget(self, action: #selector(more), for: .touchUpInside)
+        actions.axis = .horizontal; actions.alignment = .center; actions.spacing = 12
+        let leadingSpacer = UIView(), trailingSpacer = UIView()
+        actions.addArrangedSubview(leadingSpacer); actions.addArrangedSubview(counts)
+        actions.addArrangedSubview(trailingSpacer); actions.addArrangedSubview(tools)
+        leadingSpacer.widthAnchor.constraint(equalTo: trailingSpacer.widthAnchor).isActive = true
+        tools.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        tools.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        let tap = UITapGestureRecognizer(target: self, action: #selector(cardTapped))
+        tap.cancelsTouchesInView = false
+        web.addGestureRecognizer(tap)
         counts.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
         counts.textAlignment = .center
         counts.accessibilityIdentifier = "studyCounts"
         controls.axis = .horizontal; controls.distribution = .fillEqually; controls.spacing = 4
-        [counts, web, controls].forEach { $0.translatesAutoresizingMaskIntoConstraints = false; view.addSubview($0) }
+        [actions, web, controls].forEach { $0.translatesAutoresizingMaskIntoConstraints = false; view.addSubview($0) }
         NSLayoutConstraint.activate([
-            counts.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
-            counts.leadingAnchor.constraint(equalTo: view.leadingAnchor), counts.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            counts.heightAnchor.constraint(equalToConstant: 22),
-            web.topAnchor.constraint(equalTo: counts.bottomAnchor, constant: 4), web.leadingAnchor.constraint(equalTo: view.leadingAnchor), web.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            web.bottomAnchor.constraint(equalTo: controls.topAnchor, constant: -8),
+            web.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            web.leadingAnchor.constraint(equalTo: view.leadingAnchor), web.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            web.bottomAnchor.constraint(equalTo: actions.topAnchor),
+            actions.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
+            actions.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
+            actions.bottomAnchor.constraint(equalTo: controls.topAnchor),
+            actions.heightAnchor.constraint(equalToConstant: 44),
             controls.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
             controls.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
             controls.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
@@ -41,7 +60,7 @@ final class ReviewerController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setToolbarHidden(true, animated: animated)
-        if let current = current { currentFromStore(current.card.id) }
+        if let current = current { currentFromStore(current.card.id) } else { nextCard() }
     }
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
@@ -81,7 +100,10 @@ final class ReviewerController: UIViewController {
         revealed = true; render(current.answerHTML)
         controls.arrangedSubviews.forEach { controls.removeArrangedSubview($0); $0.removeFromSuperview() }
         for (name, rating, color) in [("Again", ReviewRating.again, UIColor.systemRed), ("Hard", .hard, .systemGray), ("Good", .good, .systemGreen), ("Easy", .easy, .systemBlue)] {
-            let button = Theme.button(name, identifier: "rate.\(name.lowercased())", action: UIAction { [weak self] _ in self?.rate(rating) })
+            let delay = model.store.scheduledDelay(cardID: current.id, rating: rating) ?? 0
+            let button = Theme.button(Self.interval(delay) + "\n" + name, identifier: "rate.\(name.lowercased())", action: UIAction { [weak self] _ in self?.rate(rating) })
+            button.titleLabel?.numberOfLines = 2
+            button.titleLabel?.textAlignment = .center
             button.setTitleColor(color, for: .normal)
             button.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
             controls.addArrangedSubview(button)
@@ -91,6 +113,38 @@ final class ReviewerController: UIViewController {
         guard let card = current else { return }
         do { _ = try model.store.answer(cardID: card.card.id, rating: rating, durationSeconds: max(0, Date().timeIntervalSince(startedAt))); nextCard() }
         catch { showError(error) }
+    }
+    private static func interval(_ seconds: TimeInterval) -> String {
+        if seconds < 3600 { return "\(max(1, Int((seconds / 60).rounded())))m" }
+        if seconds < 86400 { return "\(Int((seconds / 3600).rounded()))h" }
+        return "\(Int((seconds / 86400).rounded()))d"
+    }
+    @objc private func cardTapped() { if !revealed { showAnswer() } }
+    @objc private func addNote() {
+        let editor = EditorController(model: model, note: nil, deckID: deck.id)
+        editor.onSave = { [weak self] in self?.nextCard() }
+        present(UINavigationController(rootViewController: editor), animated: true)
+    }
+    @objc private func editNote() {
+        guard let current else { return }
+        let editor = EditorController(model: model, note: current.note, deckID: current.deck.id)
+        editor.onSave = { [weak self] in self?.currentFromStore(current.id) }
+        present(UINavigationController(rootViewController: editor), animated: true)
+    }
+    @objc private func browse() { navigationController?.pushViewController(BrowserController(model: model), animated: true) }
+    override var canBecomeFirstResponder: Bool { true }
+    override var keyCommands: [UIKeyCommand]? {
+        [UIKeyCommand(input: " ", modifierFlags: [], action: #selector(spacePressed)),
+         UIKeyCommand(input: "1", modifierFlags: [], action: #selector(ratingPressed(_:))),
+         UIKeyCommand(input: "2", modifierFlags: [], action: #selector(ratingPressed(_:))),
+         UIKeyCommand(input: "3", modifierFlags: [], action: #selector(ratingPressed(_:))),
+         UIKeyCommand(input: "4", modifierFlags: [], action: #selector(ratingPressed(_:)))]
+    }
+    override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); becomeFirstResponder() }
+    @objc private func spacePressed() { if revealed { rate(.good) } else { showAnswer() } }
+    @objc private func ratingPressed(_ command: UIKeyCommand) {
+        guard revealed, let input = command.input, let value = Int(input), let rating = ReviewRating(rawValue: value) else { return }
+        rate(rating)
     }
     @objc private func more() {
         let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
@@ -121,7 +175,8 @@ final class ReviewerController: UIViewController {
             guard let self = self else { return }; self.navigationController?.pushViewController(StatisticsController(model: self.model, deckID: self.deck.id), animated: true)
         })
         sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        sheet.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        sheet.popoverPresentationController?.sourceView = actions
+        sheet.popoverPresentationController?.sourceRect = actions.bounds
         present(sheet, animated: true)
     }
 }

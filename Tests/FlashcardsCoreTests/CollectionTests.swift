@@ -50,6 +50,18 @@ final class CollectionTests: XCTestCase {
         XCTAssertEqual(s.cards[0], original); XCTAssertTrue(s.reviewLogs.isEmpty)
         XCTAssertThrowsError(try s.undoLastReview())
     }
+    func testPreviewUsesSameScheduleWithoutMutation() throws {
+        let s = try store()
+        _ = try s.addNote(deckID: s.defaultDeckID, front: "preview", back: "answer")
+        let before = try s.exportBackup(), id = s.cards[0].id
+        for rating in ReviewRating.allCases {
+            let delay = try XCTUnwrap(s.scheduledDelay(cardID: id, rating: rating, now: now))
+            XCTAssertEqual(try s.exportBackup(), before)
+            _ = try s.answer(cardID: id, rating: rating, now: now)
+            XCTAssertEqual(s.cards[0].due.timeIntervalSince(now), delay)
+            try s.undoLastReview()
+        }
+    }
     func testLearningStepsAndRelearning() throws {
         let scheduler = ApproximateLocalScheduler()
         var card = Card(noteID: UUID(), deckID: UUID())

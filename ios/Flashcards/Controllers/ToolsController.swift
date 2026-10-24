@@ -6,7 +6,7 @@ final class ToolsController: UITableViewController, UIDocumentPickerDelegate {
     private let model: AppModel
     private var restoring = false
     private var importDeckID: UUID?
-    private let actions = ["Create Deck", "Import CSV / TSV", "Export CSV", "Export Collection Backup", "Restore Collection Backup", "Statistics"]
+    private let actions = ["Add Note", "Create Deck", "Import CSV / TSV", "Export CSV", "Export Collection Backup", "Restore Collection Backup", "Statistics"]
     init(model: AppModel) { self.model = model; super.init(style: .insetGrouped) }
     required init?(coder: NSCoder) { fatalError("Use init(model:)") }
     override func viewDidLoad() { super.viewDidLoad(); title = "Tools"; navigationController?.setToolbarHidden(true, animated: false) }
@@ -20,11 +20,14 @@ final class ToolsController: UITableViewController, UIDocumentPickerDelegate {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         switch indexPath.row {
-        case 0: createDeck()
-        case 1: chooseImportDeck()
-        case 2: export(backup: false)
-        case 3: export(backup: true)
-        case 4:
+        case 0:
+            let editor = EditorController(model: model, note: nil, deckID: model.store.defaultDeckID)
+            present(UINavigationController(rootViewController: editor), animated: true)
+        case 1: createDeck()
+        case 2: chooseImportDeck()
+        case 3: export(backup: false)
+        case 4: export(backup: true)
+        case 5:
             restoring = true
             let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.json], asCopy: true)
             picker.delegate = self; present(picker, animated: true)
@@ -54,7 +57,7 @@ final class ToolsController: UITableViewController, UIDocumentPickerDelegate {
         }
         sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         sheet.popoverPresentationController?.sourceView = view
-        sheet.popoverPresentationController?.sourceRect = tableView.rectForRow(at: IndexPath(row: 1, section: 0))
+        sheet.popoverPresentationController?.sourceRect = tableView.rectForRow(at: IndexPath(row: 2, section: 0))
         present(sheet, animated: true)
     }
     private func export(backup: Bool) {

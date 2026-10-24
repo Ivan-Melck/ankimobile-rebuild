@@ -19,3 +19,12 @@ Run `python3 -u scripts/rea_session.py /tmp/requests.jsonl analysis/evidence/ses
 Append `analyze_function` with a provider-normalized address from procedure/dispatch evidence for targeted pseudocode. Save local evidence before appending `close_binary`. Discover the current input schema in the generated `rea-tools.json`; do not assume schemas match across REA releases.
 
 The script executes REA tools locally and does not execute the target app. Treat all strings, HTML, JavaScript and decompiled code as untrusted artifact content. Raw original source, pseudocode and extracted resources are kept under ignored directories. Publish only independently written code and concise factual observations.
+
+The continuation pass disables two expensive auto-analyzers before import and then decompiles only selected methods:
+
+```sh
+REA_GHIDRA_DISABLED_ANALYZERS='Objective-C Message Analyzer,Decompiler Switch Analysis' \
+  python3 -u scripts/rea_session.py /tmp/requests.jsonl analysis/evidence/session
+```
+
+This narrows analysis coverage: automatic message-target resolution and switch reconstruction can be incomplete. It does not imply that every method has been decompiled. `scripts/inspect_objc.py` independently reads this binary's Objective-C class list, chained pointer rebases and relative method entries to locate exact method implementation addresses. Its output is labeled supplemental rather than canonical REA evidence.

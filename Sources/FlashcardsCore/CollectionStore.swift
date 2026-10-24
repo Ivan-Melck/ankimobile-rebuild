@@ -150,6 +150,15 @@ public final class CollectionStore {
 
     public func studyCard(id: UUID) -> StudyCard? { locked { Self.studyCards(in: document).first { $0.id == id } } }
 
+    /// Uses the same injected engine as answer(), without changing the card or review history.
+    public func scheduledDelay(cardID: UUID, rating: ReviewRating, now: Date = Date()) -> TimeInterval? {
+        locked {
+            guard let card = document.cards.first(where: { $0.id == cardID }) else { return nil }
+            let delay = scheduler.schedule(card: card, rating: rating, at: now).due.timeIntervalSince(now)
+            return delay.isFinite && delay > 0 ? delay : nil
+        }
+    }
+
     @discardableResult public func answer(cardID: UUID, rating: ReviewRating, now: Date = Date(), durationSeconds: Double = 0) throws -> ReviewLog {
         try mutate(clearUndo: false) { doc in
             guard durationSeconds.isFinite, durationSeconds >= 0, now.timeIntervalSince1970.isFinite else { throw CollectionError.invalidInput("Invalid review time.") }

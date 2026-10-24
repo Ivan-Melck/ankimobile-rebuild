@@ -16,3 +16,7 @@ xcuserdata/
 *.xcresult/
 *.log
 .env
+
+# Python analysis helper caches
+__pycache__/
+*.pyc

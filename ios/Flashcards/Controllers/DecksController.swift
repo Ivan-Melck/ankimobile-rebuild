@@ -13,15 +13,17 @@ final class DecksController: UITableViewController {
         tableView.accessibilityIdentifier = "deckList"
         tableView.register(DeckCell.self, forCellReuseIdentifier: "deck")
         tableView.rowHeight = 51
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(settings))
-        navigationItem.leftBarButtonItem?.accessibilityLabel = "Settings"
-        navigationItem.rightBarButtonItems = [
-            UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add)),
-            UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(browse))
-        ]
+        let help = UIBarButtonItem(image: UIImage(systemName: "questionmark.circle"), style: .plain, target: self, action: #selector(help))
+        help.accessibilityLabel = "Help"
+        let statistics = UIBarButtonItem(image: UIImage(systemName: "chart.bar"), style: .plain, target: self, action: #selector(statistics))
+        statistics.accessibilityLabel = "Statistics"
+        navigationItem.leftBarButtonItems = [help, statistics]
+        let preferences = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(settings))
+        preferences.accessibilityLabel = "Settings"
+        navigationItem.rightBarButtonItems = [preferences, UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(browse))]
         let sync = UIBarButtonItem(title: "Synchronize", style: .plain, target: self, action: #selector(sync))
         sync.accessibilityIdentifier = "synchronize"
-        toolbarItems = [UIBarButtonItem(title: "Tools", style: .plain, target: self, action: #selector(tools)), .flexibleSpace(), sync]
+        toolbarItems = [UIBarButtonItem(title: "Add/Export", style: .plain, target: self, action: #selector(tools)), .flexibleSpace(), sync]
         let refresh = UIRefreshControl()
         refresh.addTarget(self, action: #selector(refreshDecks), for: .valueChanged)
         refreshControl = refresh
@@ -34,9 +36,9 @@ final class DecksController: UITableViewController {
     @objc private func refreshDecks() { tableView.reloadData(); refreshControl?.endRefreshing() }
     @objc private func settings() { navigationController?.pushViewController(SettingsController(model: model), animated: true) }
     @objc private func browse() { navigationController?.pushViewController(BrowserController(model: model), animated: true) }
-    @objc private func add() {
-        let editor = EditorController(model: model, note: nil, deckID: decks.first?.id)
-        present(UINavigationController(rootViewController: editor), animated: true)
+    @objc private func statistics() { navigationController?.pushViewController(StatisticsController(model: model), animated: true) }
+    @objc private func help() {
+        showMessage("Flashcards", "Tap a deck to study. Add notes from Add/Export or the study screen. Tap a card or Show Answer to reveal it, then choose Again, Hard, Good, or Easy. Swipe a deck for options. Browse lets you search and edit cards.")
     }
     @objc private func tools() { navigationController?.pushViewController(ToolsController(model: model), animated: true) }
     @objc private func sync() {

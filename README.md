@@ -22,7 +22,7 @@ Select the `Flashcards` scheme and an iPhone/iPad simulator, then Run. For a phy
 
 - Native deck list with new/review counts; create, rename, configure limits, and delete decks.
 - Add/edit Basic, reversed, and Cloze notes with tags and HTML fields.
-- WebKit card rendering, answer reveal, four answer ratings, review undo, bury, and suspend.
+- WebKit card rendering, tap-to-reveal, four answer ratings with interval previews, keyboard review, undo, bury, and suspend.
 - Search by text, `deck:"French Verbs"`, `tag:verbs`, `flag:3`, `is:new`, `is:learn`, `is:review`, `is:due`, `is:suspended`, `is:buried`; combine with spaces and negate using `-`.
 - Daily limits, local learning/review queues, review history, and statistics.
 - CSV/TSV import with quoted fields and duplicate detection; CSV export; full JSON collection backup/restore.

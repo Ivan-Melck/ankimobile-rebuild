@@ -4,7 +4,7 @@ Usage: python3 scripts/rea_session.py <queue.jsonl> <output-directory>
 Append {"label":"...", "tool":"...", "arguments":{...}}; close_binary closes the session.
 No agent registration or global configuration is changed.
 """
-import json, os, pathlib, subprocess, sys, time
+import json, os, pathlib, signal, subprocess, sys, time
 root = pathlib.Path(__file__).resolve().parents[1]
 queue, output = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
 output.mkdir(parents=True,exist_ok=True)
@@ -16,6 +16,10 @@ env.setdefault('REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS','90')
 err=(output/'rea-server.stderr.log').open('w')
 p=subprocess.Popen([str(root/'.tools/node_modules/.bin/rea'),'--mcp'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=err,text=True,env=env)
 request_id=0
+
+def stop_session(signum, frame):
+ raise SystemExit(128 + signum)
+signal.signal(signal.SIGTERM, stop_session)
 
 def rpc(method,params):
  global request_id

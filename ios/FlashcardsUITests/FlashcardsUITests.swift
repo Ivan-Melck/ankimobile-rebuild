@@ -1,6 +1,7 @@
 import XCTest
 
 final class FlashcardsUITests: XCTestCase {
+    override func setUpWithError() throws { continueAfterFailure = false }
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--ui-testing", "--reset-test-collection"]
@@ -16,18 +17,20 @@ final class FlashcardsUITests: XCTestCase {
     func testCreateStudyEditAndPersist() {
         let app = launch()
         screenshot("01-Decks")
-        app.navigationBars.buttons["Add"].tap()
+        app.buttons["Add/Export"].tap()
+        app.staticTexts["Add Note"].tap()
         let front = app.textViews["noteFront"]
         XCTAssertTrue(front.waitForExistence(timeout: 5))
         front.tap(); front.typeText("Capital of France?")
         app.textViews["noteBack"].tap(); app.textViews["noteBack"].typeText("Paris")
         screenshot("02-Editor")
         app.buttons["saveNote"].tap()
+        app.navigationBars.buttons["Decks"].tap()
         app.tables["deckList"].cells.firstMatch.tap()
         XCTAssertTrue(app.buttons["showAnswer"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.webViews.staticTexts["Capital of France?"].waitForExistence(timeout: 10))
         screenshot("03-Question")
-        app.buttons["showAnswer"].tap()
+        app.webViews.firstMatch.tap()
         XCTAssertTrue(app.webViews.staticTexts["Paris"].waitForExistence(timeout: 10))
         screenshot("04-Answer")
         app.buttons["rate.easy"].tap()
@@ -42,7 +45,7 @@ final class FlashcardsUITests: XCTestCase {
         app.tables["cardBrowser"].cells.firstMatch.tap()
         let editBack = app.textViews["noteBack"]
         XCTAssertTrue(editBack.waitForExistence(timeout: 5))
-        editBack.tap(); editBack.typeText(" — edited")
+        editBack.tap(); editBack.typeText(" edited")
         app.buttons["saveNote"].tap()
         app.terminate()
         // Relaunch without reset to verify that edits were saved to disk.
@@ -54,7 +57,7 @@ final class FlashcardsUITests: XCTestCase {
     }
     func testDeckCreationAndAppearance() {
         let app = launch()
-        app.buttons["Tools"].tap(); app.staticTexts["Create Deck"].tap()
+        app.buttons["Add/Export"].tap(); app.staticTexts["Create Deck"].tap()
         let name = app.textFields["newDeckName"]
         XCTAssertTrue(name.waitForExistence(timeout: 5))
         name.tap(); name.typeText("French")
