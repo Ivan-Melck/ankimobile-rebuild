@@ -31,7 +31,7 @@ Select the `Flashcards` scheme and an iPhone/iPad simulator, then Run. For a phy
 
 - Real Anki collections and `.colpkg` / `.apkg` imports into separate profiles, with a profile switcher and collection export including media.
 - Native deck hierarchy, full backend search, arbitrary note fields and preserved note types/templates.
-- Backend card rendering, typed/cloze answers, template JavaScript, local media and native answer controls.
+- Backend card rendering, typed/cloze answers, template JavaScript, offline MathJax, cached LaTeX, image-occlusion viewing and local media. Native answer controls remain outside the document.
 - Anki scheduling states, answer history, undo, burying and suspension.
 - RWKV Instant candidate scores and Curve interval integration using canonical fork replay rows. Model and precision are local per-profile settings; Instant retains the selected fallback due-date engine.
 - Native deck options, login/sync, Keychain tokens, cancellation, full-sync direction choices and local backups before full sync.
@@ -48,6 +48,7 @@ A private collection test passed a round trip of 8,478 cards, 6,402 notes, 10 no
 | Card font, spacing, colors | `ios/Flashcards/Resources/reviewer.css` |
 | Theme and preferences | `ios/Flashcards/Support/AppModel.swift` |
 | Real Anki backend bridge and collection operations | `Sources/FlashcardsCore/AnkiBackend.swift`, `NativeEngine/src/full_backend.rs` |
+| Offline math / image-occlusion assets | `tools/reviewer/`, `ios/Flashcards/Resources/anki-*.js` |
 | Typed-answer presentation and comparison | `Sources/FlashcardsCore/AnkiTypedAnswer.swift` |
 | Native RWKV replay/score coordination | `NativeEngine/src/collection_rwkv.rs` |
 | Shared Anki implementation | `Vendor/anki/` (pinned submodule; keep adapter changes outside it) |

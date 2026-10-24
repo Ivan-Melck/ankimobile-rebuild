@@ -1,0 +1,14 @@
+{
+  "name": "anki-ios-reviewer-assets",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "mathjax": "3.2.2",
+    "svelte": "5.56.9"
+  }
+}

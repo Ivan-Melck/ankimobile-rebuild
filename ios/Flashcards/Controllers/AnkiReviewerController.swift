@@ -2,13 +2,16 @@ import UIKit
 import AVFoundation
 import FlashcardsCore
 
-final class AnkiReviewerController: UIViewController {
+final class AnkiReviewerController: UIViewController, AVSpeechSynthesizerDelegate {
     let state: AnkiAppState, deckID: String
     private var queued: AnkiValue?, question = "", answer = "", css = "", revealed = false, started = Date()
     private var web: AnkiCardWebView!
     private let controls = UIStackView(), counts = UILabel()
     private var audio: AVAudioPlayer?, speech = AVSpeechSynthesizer(), loading = false
     private var typed: AnkiTypedAnswer?
+    private var questionTags: [AnkiValue] = [], answerTags: [AnkiValue] = []
+    private var answerShownAt: Date?
+    private var activeSpeech: AVSpeechUtterance?
     init(state: AnkiAppState, deckID: String, name: String) { self.state = state; self.deckID = deckID; super.init(nibName: nil, bundle: nil); title = name }
     required init?(coder: NSCoder) { fatalError() }
     override func viewDidLoad() {
@@ -20,6 +23,8 @@ final class AnkiReviewerController: UIViewController {
             self.controls.addArrangedSubview(Theme.button("Reload Card", identifier: "ankiReloadCard", action: UIAction { [weak self] _ in self?.next() }))
             self.showError(error)
         }
+        speech.delegate = self
+        web.onSpeak = { [weak self] question, index in self?.activeSpeech = nil; self?.speech.stopSpeaking(at: .immediate); self?.speak(question: question, index: index) }
         controls.axis = .horizontal; controls.distribution = .fillEqually; controls.spacing = 8
         counts.font = .preferredFont(forTextStyle: .caption1); counts.textColor = .secondaryLabel; counts.textAlignment = .center
         let stack = UIStackView(arrangedSubviews: [web, counts, controls]); stack.axis = .vertical; stack.spacing = 10; stack.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(stack)
@@ -27,15 +32,15 @@ final class AnkiReviewerController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(actions)); navigationItem.rightBarButtonItem?.accessibilityLabel = "Study Actions"
     }
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); navigationController?.setToolbarHidden(true, animated: animated); next() }
-    override func viewDidDisappear(_ animated: Bool) { super.viewDidDisappear(animated); audio?.stop(); speech.stopSpeaking(at: .immediate) }
+    override func viewDidDisappear(_ animated: Bool) { super.viewDidDisappear(animated); activeSpeech = nil; audio?.stop(); speech.stopSpeaking(at: .immediate); web.evaluateJavaScript("window.__ankiCancelAutoplay?.()") }
     private func next() {
-        guard !loading else { return }; loading = true; queued = nil; revealed = false
+        guard !loading else { return }; loading = true; queued = nil; revealed = false; answerShownAt = nil
         controls.arrangedSubviews.forEach { $0.removeFromSuperview() }; counts.text = "Preparing your next card…"
         let model = state.rwkvModel, precision = state.rwkvPrecision
         let collection = state.collection
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
-            let result = Result { () -> (AnkiValue, (question: String, answer: String, css: String)?, AnkiTypedAnswer?) in
+            let result = Result { () -> (AnkiValue, AnkiRenderedCard?, AnkiTypedAnswer?) in
                 let queue = try collection.prepareReview(deckID: self.deckID, model: model, precision: precision)
                 guard let card = queue["cards"].array.first else { return (queue, nil, nil) }
                 let rendered = try collection.render(cardID: card["card"]["id"].string)
@@ -50,31 +55,56 @@ final class AnkiReviewerController: UIViewController {
                     self.queued = queue["cards"].array.first
                     self.counts.text = "\(queue["newCount"].int) new   ·   \(queue["learningCount"].int) learning   ·   \(queue["reviewCount"].int) review"
                     self.started = Date()
-                    if let rendering { self.question = typed?.questionHTML(rendering.question) ?? rendering.question; self.answer = rendering.answer; self.css = rendering.css; self.render(self.question, questionSide: true); self.controls.addArrangedSubview(Theme.button("Show Answer", identifier: "ankiShowAnswer", action: UIAction { [weak self] _ in self?.reveal() })) }
+                    if let rendering { self.questionTags = rendering.questionAVTags; self.answerTags = rendering.answerAVTags; self.question = typed?.questionHTML(rendering.question) ?? rendering.question; self.answer = rendering.answer; self.css = rendering.css; self.render(self.question, questionSide: true); self.controls.addArrangedSubview(Theme.button("Show Answer", identifier: "ankiShowAnswer", action: UIAction { [weak self] _ in self?.reveal() })) }
                     else { self.web.show("<h2>You’re done for now</h2><p>Come back when your next cards are due.</p>", css: "", dark: self.traitCollection.userInterfaceStyle == .dark); self.controls.addArrangedSubview(Theme.button("Decks", identifier: "ankiStudyDone", action: UIAction { [weak self] _ in self?.navigationController?.popViewController(animated: true) })) }
                 }
             }
         }
     }
     private func render(_ text: String, questionSide: Bool) {
-        do {
-            let av = try state.collection.backend.call("CardRendering", "ExtractAvTags", ["text": .string(text), "questionSide": .bool(questionSide)])
-            var html = av["text"].string
-            for tag in av["avTags"].array {
+            var html = text
+            activeSpeech = nil; speech.stopSpeaking(at: .immediate)
+            let autoplay = !(queued?["reviewConfig"]["disableAutoplay"].bool ?? false)
+            for (side, tags) in [("q", questionTags), ("a", answerTags)] {
+              for (index, tag) in tags.enumerated() {
+                let marker = "[anki:play:\(side):\(index)]"
+                guard html.contains(marker) else { continue }
+                let shouldPlay = autoplay && (questionSide ? side == "q" : side == "a")
+                let playback = shouldPlay ? " data-anki-auto" : ""
                 let file = tag["soundOrVideo"].string
                 if !file.isEmpty {
                     let escaped = file.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? ""
                     let video = ["mp4", "webm", "mov"].contains(URL(fileURLWithPath: file).pathExtension.lowercased())
-                    html += video ? "<video controls autoplay playsinline src=\"\(escaped)\"></video>" : "<audio controls autoplay src=\"\(escaped)\"></audio>"
+                    let element = video ? "<video controls\(playback) onpointerdown=\"window.__ankiCancelAutoplay?.()\" playsinline src=\"\(escaped)\"></video>" : "<audio controls\(playback) onpointerdown=\"window.__ankiCancelAutoplay?.()\" src=\"\(escaped)\"></audio>"
+                    html = html.replacingOccurrences(of: marker, with: element)
                 } else if tag["tts"] != .null {
-                    let utterance = AVSpeechUtterance(string: tag["tts"]["fieldText"].string); utterance.voice = AVSpeechSynthesisVoice(language: tag["tts"]["lang"].string); speech.speak(utterance)
+                    html = html.replacingOccurrences(of: marker, with: "<button type=\"button\"\(playback) data-anki-speech=\"tts:\(side):\(index)\" aria-label=\"Replay speech\" onclick=\"window.__ankiCancelAutoplay?.();pycmd('tts:\(side):\(index)')\">▶︎</button>")
                 }
+              }
             }
             web.show(html, css: css, dark: traitCollection.userInterfaceStyle == .dark, ordinal: queued?["card"]["templateIdx"].int ?? 0)
-        } catch { showError(error) }
+    }
+    private func speak(question: Bool, index: Int) {
+        let tags = question ? questionTags : answerTags
+        guard tags.indices.contains(index), tags[index]["tts"] != .null else { return }
+        let tag = tags[index]["tts"]
+        let utterance = AVSpeechUtterance(string: tag["fieldText"].string)
+        utterance.voice = AVSpeechSynthesisVoice(language: tag["lang"].string.replacingOccurrences(of: "_", with: "-"))
+        let speed = tag["speed"].double > 0 ? tag["speed"].double : 1
+        utterance.rate = min(AVSpeechUtteranceMaximumSpeechRate, max(AVSpeechUtteranceMinimumSpeechRate, AVSpeechUtteranceDefaultSpeechRate * Float(speed)))
+        activeSpeech = utterance
+        speech.speak(utterance)
+    }
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) { speechEnded(utterance) }
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) { speechEnded(utterance) }
+    private func speechEnded(_ utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.activeSpeech === utterance else { return }
+            self.activeSpeech = nil; self.web.evaluateJavaScript("window.__ankiSpeechDone?.()")
+        }
     }
     private func reveal() {
-        guard let queued, !revealed else { return }; revealed = true
+        guard let queued, !revealed else { return }; revealed = true; answerShownAt = Date()
         if let typed {
             web.evaluateJavaScript("document.getElementById('typeans')?.value || ''") { [weak self] value, error in
                 guard let self, self.queued?["card"]["id"] == queued["card"]["id"] else { return }
@@ -97,12 +127,12 @@ final class AnkiReviewerController: UIViewController {
             button.tintColor = [UIColor.systemRed, .systemOrange, .systemGreen, .systemBlue][i]; controls.addArrangedSubview(button)
         }
     }
-    private func rate(_ value: Int) { guard let queued else { return }; do { try state.collection.answer(queued: queued, rating: value, seconds: Date().timeIntervalSince(started)); next() } catch { showError(error) } }
+    private func rate(_ value: Int) { guard let queued else { return }; do { let end = queued["reviewConfig"]["stopTimerOnAnswer"].bool ? (answerShownAt ?? Date()) : Date(); try state.collection.answer(queued: queued, rating: value, seconds: end.timeIntervalSince(started)); next() } catch { showError(error) } }
     @objc private func actions() {
         let sheet = UIAlertController(title: "Study", message: nil, preferredStyle: .actionSheet)
         sheet.addAction(UIAlertAction(title: "Undo Last Answer", style: .default) { [weak self] _ in guard let self else { return }; do { try self.state.collection.undo(); self.next() } catch { self.showError(error) } })
         if let queued {
-            sheet.addAction(UIAlertAction(title: "Edit Note", style: .default) { [weak self] _ in guard let self else { return }; do { let note = try self.state.collection.getNote(queued["card"]["noteId"].string); let editor = AnkiEditorController(state: self.state, note: note, deckID: self.deckID); editor.onSave = { [weak self] in self?.next() }; self.present(UINavigationController(rootViewController: editor), animated: true) } catch { self.showError(error) } })
+            sheet.addAction(UIAlertAction(title: "Edit Note", style: .default) { [weak self] _ in guard let self else { return }; do { let note = try self.state.collection.getNote(queued["card"]["noteId"].string); let editor = AnkiEditorController(state: self.state, note: note, deckID: self.deckID); editor.onSave = { [weak self] in self?.next() }; self.presentAnkiEditor(editor) } catch { self.showError(error) } })
             for (title, mode) in [("Suspend Card", 0), ("Bury Card", 2)] { sheet.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in guard let self else { return }; do { try self.state.collection.backend.call("Scheduler", "BuryOrSuspendCards", ["cardIds": .array([queued["card"]["id"]]), "mode": .number(Double(mode))]); self.next() } catch { self.showError(error) } }) }
         }
         sheet.addAction(UIAlertAction(title: "Deck Options", style: .default) { [weak self] _ in guard let self else { return }; self.navigationController?.pushViewController(AnkiOptionsController(state: self.state, deckID: self.deckID), animated: true) })

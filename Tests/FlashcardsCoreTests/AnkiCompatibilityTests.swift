@@ -51,6 +51,89 @@ final class AnkiCompatibilityTests: XCTestCase {
         }
         try col.close()
     }
+    func testFrontSideKeepsQuestionAudioSeparateFromAnswerAudio() throws {
+        let col = try AnkiCollection(directory: directory())
+        let basic = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Basic" })
+        let nid = try col.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Question [sound:front.wav]", "Answer [sound:back.wav]"])
+        let rendered = try col.render(cardID: XCTUnwrap(col.search("nid:\(nid)").first))
+        XCTAssertEqual(rendered.questionAVTags.map { $0["soundOrVideo"].string }, ["front.wav"])
+        XCTAssertEqual(rendered.answerAVTags.map { $0["soundOrVideo"].string }, ["back.wav"])
+        XCTAssertTrue(rendered.answer.contains("[anki:play:q:0]")); XCTAssertTrue(rendered.answer.contains("[anki:play:a:0]"))
+        XCTAssertFalse(rendered.answer.contains("[sound:"))
+        try col.close()
+    }
+    func testUnknownDesktopTemplateFilterPausesInsteadOfDroppingItsBehavior() throws {
+        let col = try AnkiCollection(directory: directory())
+        let basic = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Basic" })
+        var type = try col.notetype(basic["id"].string), templates = type["templates"].array, template = templates[0], config = template["config"]
+        config["qFormat"] = .string("{{desktop_plugin_filter:Front}}")
+        template["config"] = config; templates[0] = template; type["templates"] = .array(templates)
+        try col.backend.call("Notetypes", "UpdateNotetype", type.object)
+        let nid = try col.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Plugin", "Answer"])
+        let cid = try XCTUnwrap(col.search("nid:\(nid)").first), before = try col.getCard(cid)
+        XCTAssertThrowsError(try col.render(cardID: cid))
+        XCTAssertEqual(try col.getCard(cid), before)
+        try col.close()
+    }
+    func testCachedLatexUsesAnkisMediaFilenames() throws {
+        let col = try AnkiCollection(directory: directory())
+        let basic = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Basic" })
+        let nid = try col.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["[latex]x^2+1[/latex]", "Cached image"])
+        let rendered = try col.render(cardID: XCTUnwrap(col.search("nid:\(nid)").first))
+        XCTAssertTrue(rendered.question.contains("<img")); XCTAssertTrue(rendered.question.contains("latex-"))
+        XCTAssertFalse(rendered.question.contains("[latex]"))
+        try col.close()
+    }
+    func testStockImageOcclusionRendersShapeDataOnBothSides() throws {
+        let col = try AnkiCollection(directory: directory())
+        try col.backend.call("ImageOcclusion", "AddImageOcclusionNotetype")
+        let named = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Image Occlusion" })
+        let type = try col.notetype(named["id"].string)
+        let indexes = try col.backend.call("ImageOcclusion", "GetImageOcclusionFields", ["notetypeId": named["id"]])["fields"]
+        var fields = Array(repeating: "", count: type["fields"].array.count)
+        fields[indexes["occlusions"].int] = "{{c1::image-occlusion:rect:left=.2:top=.2:width=.5:height=.5}}"
+        fields[indexes["image"].int] = "<img src=\"synthetic.svg\">"
+        let nid = try col.addNote(notetypeID: named["id"].string, deckID: "1", fields: fields)
+        let rendered = try col.render(cardID: XCTUnwrap(col.search("nid:\(nid)").first))
+        XCTAssertTrue(rendered.question.contains("data-shape=\"rect\""))
+        XCTAssertTrue(rendered.question.contains("anki.imageOcclusion.setup"))
+        XCTAssertTrue(rendered.answer.contains("cloze-highlight"))
+        try col.close()
+    }
+    private func filteredDeck(_ collection: AnkiCollection, noteID: String) throws -> String {
+        var filtered = try collection.backend.call("Decks", "GetOrCreateFilteredDeck", ["did": .string("0")])
+        filtered["name"] = .string("Synthetic filtered deck")
+        var config = filtered["config"]; config["reschedule"] = .bool(true)
+        config["searchTerms"] = .array([.object(["search": .string("nid:\(noteID)"), "limit": .number(10)])]); filtered["config"] = config
+        return try collection.backend.call("Decks", "AddOrUpdateFilteredDeck", filtered.object)["id"].string
+    }
+    func testStandardFilteredDeckReviewUsesOriginalPresetAndUndo() throws {
+        let col = try AnkiCollection(directory: directory())
+        let basic = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Basic" })
+        let nid = try col.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Filtered", "Original preset"])
+        let deck = try filteredDeck(col, noteID: nid)
+        let queued = try XCTUnwrap(col.prepareReview(deckID: deck)["cards"].array.first)
+        XCTAssertNotEqual(queued["states"]["current"]["filtered"], .null)
+        try col.answer(queued: queued, rating: 4, seconds: 3)
+        XCTAssertEqual(try col.getCard(queued["card"]["id"].string)["reps"].int, 1)
+        try col.undo(); XCTAssertEqual(try col.getCard(queued["card"]["id"].string)["deckId"].string, deck)
+        try col.close()
+    }
+    func testRWKVFilteredContextPausesBeforeChangingReviewHistory() throws {
+        let col = try AnkiCollection(directory: directory())
+        let basic = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Basic" })
+        let nid = try col.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Filtered RWKV", "Pending parity"])
+        let settings = try col.deckConfiguration("1")
+        var config = settings.selected, algorithm = config["config"]
+        algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true); config["config"] = algorithm
+        try col.saveDeckConfiguration(config, deckID: "1", original: settings.all)
+        let deck = try filteredDeck(col, noteID: nid), cid = try XCTUnwrap(col.search("nid:\(nid)").first)
+        let before = try col.getCard(cid)
+        XCTAssertThrowsError(try col.prepareReview(deckID: deck))
+        XCTAssertEqual(try col.getCard(cid), before)
+        XCTAssertTrue(try col.backend.call("Stats", "GetReviewLogs", ["cid": .string(cid)])["entries"].array.isEmpty)
+        try col.close()
+    }
     func testRealCollectionCreateRenderReviewUndoAndReopen() throws {
         let url = try directory(), col = try AnkiCollection(directory: url)
         let types = try col.notetypes(); XCTAssertFalse(types.isEmpty)

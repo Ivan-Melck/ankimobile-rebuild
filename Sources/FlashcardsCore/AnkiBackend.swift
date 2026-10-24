@@ -31,6 +31,11 @@ public enum AnkiValue: Equatable, Codable, Sendable {
     public var bool: Bool { if case .bool(let b) = self { return b }; return false }
 }
 
+public struct AnkiRenderedCard: Sendable {
+    public let question: String, answer: String, css: String
+    public let questionAVTags: [AnkiValue], answerAVTags: [AnkiValue]
+}
+
 /// Owns a real Anki backend session. Calls are thread-safe; long operations should run
 /// on a worker queue. Abort and progress remain callable while sync/import is running.
 public final class AnkiBackend: @unchecked Sendable {
@@ -89,11 +94,25 @@ public final class AnkiCollection: @unchecked Sendable {
         return try backend.call("Notes", "AddNote", ["note": note, "deckId": .string(deckID)])["noteId"].string
     }
     public func updateNote(_ note: AnkiValue) throws { try backend.call("Notes", "UpdateNotes", ["notes": .array([note])]) }
-    public func render(cardID: String) throws -> (question: String, answer: String, css: String) {
-        let result = try backend.call("CardRendering", "RenderExistingCard", ["cardId": .string(cardID), "partialRender": .bool(false)])
-        func html(_ nodes: AnkiValue) -> String { nodes.array.map { $0["text"].string }.joined() }
-        let question = html(result["questionNodes"])
-        return (question, html(result["answerNodes"]).replacingOccurrences(of: "{{FrontSide}}", with: question), result["css"].string)
+    public func render(cardID: String) throws -> AnkiRenderedCard {
+        let result = try backend.call("CardRendering", "RenderExistingCard", ["cardId": .string(cardID), "partialRender": .bool(true)])
+        func html(_ nodes: AnkiValue, front: String) throws -> String {
+            try nodes.array.map { node in
+                if node["text"] != .null { return node["text"].string }
+                let replacement = node["replacement"]
+                guard replacement["filters"].array.isEmpty else {
+                    throw CollectionError.invalidInput("This card requires a desktop template filter that is not available on iOS yet: " + replacement["filters"].array.map(\.string).joined(separator: ", "))
+                }
+                return replacement["fieldName"].string == "FrontSide" ? front : replacement["currentText"].string
+            }.joined()
+        }
+        // Extract question AV before injecting FrontSide, as the desktop does.
+        // Its q: markers remain replayable on the back without auto-playing again.
+        let q = try backend.call("CardRendering", "ExtractAvTags", ["text": .string(html(result["questionNodes"], front: "")), "questionSide": .bool(true)])
+        let a = try backend.call("CardRendering", "ExtractAvTags", ["text": .string(html(result["answerNodes"], front: q["text"].string)), "questionSide": .bool(false)])
+        let question = try backend.call("CardRendering", "ExtractLatex", ["text": q["text"], "svg": .bool(result["latexSvg"].bool)])["text"].string
+        let answer = try backend.call("CardRendering", "ExtractLatex", ["text": a["text"], "svg": .bool(result["latexSvg"].bool)])["text"].string
+        return AnkiRenderedCard(question: question, answer: answer, css: result["css"].string, questionAVTags: q["avTags"].array, answerAVTags: a["avTags"].array)
     }
     public func answer(queued: AnkiValue, rating: Int, seconds: Double) throws {
         let names = ["again", "hard", "good", "easy"]
@@ -149,7 +168,17 @@ extension AnkiCollection {
 extension AnkiCollection {
     public func prepareReview(deckID: String, model: String = "sm56", precision: String = "cards_int4_notes_int8") throws -> AnkiValue {
         try selectDeck(deckID)
-        let configs = try backend.call("DeckConfig", "GetDeckConfigsForUpdate", ["did": .string(deckID)])
+        let selectedDeck = try backend.call("Decks", "GetDeck", ["did": .string(deckID)])
+        var configDeckID = deckID
+        if selectedDeck["filtered"] != .null {
+            // Global options/all presets are read through any normal deck.
+            // A filtered deck has no scheduling preset of its own.
+            for entry in try decks() {
+                let deck = try backend.call("Decks", "GetDeck", ["did": entry["id"]])
+                if deck["normal"] != .null { configDeckID = entry["id"].string; break }
+            }
+        }
+        let configs = try backend.call("DeckConfig", "GetDeckConfigsForUpdate", ["did": .string(configDeckID)])
         if !configs["cardStateCustomizer"].string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             throw CollectionError.invalidInput("This collection uses a custom scheduling script that this build cannot run yet. Reviews are paused to preserve your scheduling.")
         }
@@ -174,6 +203,10 @@ extension AnkiCollection {
             let deck = try backend.call("Decks", "GetDeck", ["did": card["deckId"]])
             let actualDeck = deck["normal"] == .null ? try backend.call("Decks", "GetDeck", ["did": card["originalDeckId"]]) : deck
             let config = try backend.call("DeckConfig", "GetDeckConfig", ["dcid": actualDeck["normal"]["configId"]])["config"]
+            cards[index]["reviewConfig"] = config
+            if cards[index]["states"]["current"]["filtered"] != .null && (config["rwkvReviewEnabled"].bool || config["rwkvReviewInstantOrderEnabled"].bool) {
+                throw CollectionError.invalidInput("RWKV reviews in filtered decks are not supported in this build yet. Review this deck on desktop to preserve your scheduling.")
+            }
             guard prediction != .null else {
                 if config["rwkvReviewEnabled"].bool { throw CollectionError.invalidInput("RWKV Curve cannot prepare this card’s review context yet. Review it on desktop to preserve your scheduling.") }
                 continue

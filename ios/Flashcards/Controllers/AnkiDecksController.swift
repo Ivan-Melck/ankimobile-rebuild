@@ -45,7 +45,7 @@ final class AnkiDecksController: PlanningTableController, UIDocumentPickerDelega
         }
         return UISwipeActionsConfiguration(actions: [options, collapse])
     }
-    @objc private func add() { let editor = AnkiEditorController(state: state); editor.onSave = { [weak self] in self?.reload() }; present(UINavigationController(rootViewController: editor), animated: true) }
+    @objc private func add() { let editor = AnkiEditorController(state: state); editor.onSave = { [weak self] in self?.reload() }; presentAnkiEditor(editor) }
     @objc private func browse() { navigationController?.pushViewController(AnkiBrowserController(state: state), animated: true) }
     @objc private func sync() { navigationController?.pushViewController(AnkiSyncController(state: state), animated: true) }
     @objc private func tools() {
@@ -69,6 +69,15 @@ final class AnkiDecksController: PlanningTableController, UIDocumentPickerDelega
         })
         sheet.addAction(UIAlertAction(title: "Appearance", style: .default) { [weak self] _ in
             guard let self else { return }; self.navigationController?.pushViewController(PlanningChoiceController(title: "Appearance", values: [("System", ""), ("Light", ""), ("Dark", "")], selected: self.state.preferences.integer(forKey: "appearance")) { value in self.state.preferences.set(value, forKey: "appearance"); self.state.applyAppearance(self.view.window) }, animated: true)
+        })
+        sheet.addAction(UIAlertAction(title: "Source Code & Licenses", style: .default) { [weak self] _ in
+            guard let self else { return }
+            let controller = UIViewController(); controller.title = "Source & Licenses"
+            let text = UITextView(); text.isEditable = false; text.font = .preferredFont(forTextStyle: .body); text.dataDetectorTypes = [.link]; text.backgroundColor = .systemBackground
+            let licenses = Bundle.main.url(forResource: "reviewer-asset-licenses", withExtension: "txt").flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? "See the repository for license texts."
+            text.text = "Flashcards — independent native iOS rebuild\n\nEditable source and build instructions:\nhttps://github.com/Ivan-Melck/ankimobile-rebuild\n\nShared backend:\nhttps://github.com/JSchoreels/anki\n\n" + licenses
+            text.textContainerInset = UIEdgeInsets(top: 20, left: 16, bottom: 20, right: 16); controller.view = text
+            self.navigationController?.pushViewController(controller, animated: true)
         })
         sheet.addAction(UIAlertAction(title: "Original Local Collection", style: .default) { [weak self] _ in
             guard let self else { return }

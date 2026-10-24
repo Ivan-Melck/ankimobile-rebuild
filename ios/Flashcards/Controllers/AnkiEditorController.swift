@@ -17,14 +17,14 @@ final class AnkiEditorController: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(save)); navigationItem.rightBarButtonItem?.accessibilityIdentifier = "ankiSaveNote"
         do {
             typeID = try note?["notetypeId"].string ?? state.collection.notetypes().first?["id"].string ?? ""
-            try loadType(); if let note { fields = note["fields"].array.map(\.string); tags = note["tags"].array.map(\.string).joined(separator: " ") }
+            try loadType(reload: false); if let note { fields = note["fields"].array.map(\.string); tags = note["tags"].array.map(\.string).joined(separator: " ") }; tableView.reloadData()
         } catch { showError(error) }
     }
-    private func loadType() throws {
+    private func loadType(reload: Bool = true) throws {
         let previous = fields, byName = Dictionary(uniqueKeysWithValues: zip(fieldNames, fields))
         let type = try state.collection.notetype(typeID); fieldNames = type["fields"].array.map { $0["name"].string }
         fields = fieldNames.enumerated().map { index, name in byName[name] ?? (previous.indices.contains(index) ? previous[index] : "") }
-        tableView.reloadData()
+        if reload { tableView.reloadData() }
     }
     override func numberOfSections(in tableView: UITableView) -> Int { 3 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 1 ? fields.count : section == 0 ? 2 : 1 }
@@ -37,6 +37,8 @@ final class AnkiEditorController: UITableViewController {
         let index = p.row
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
         let editor = UITextView(); editor.font = .preferredFont(forTextStyle: .body); editor.isScrollEnabled = false
+        editor.isEditable = true; editor.isSelectable = true
+        editor.smartQuotesType = .no; editor.smartDashesType = .no; editor.autocorrectionType = .no; editor.autocapitalizationType = .none; editor.spellCheckingType = .no
         editor.text = p.section == 1 ? fields[index] : tags; editor.accessibilityLabel = p.section == 1 ? fieldNames[index] : "Tags"
         editor.accessibilityIdentifier = p.section == 1 ? "ankiField.\(index)" : "ankiTags"
         let label = UILabel(); label.font = .preferredFont(forTextStyle: .caption1); label.textColor = .secondaryLabel; label.text = p.section == 1 ? fieldNames[index] : "Separate tags with spaces"
@@ -50,7 +52,12 @@ final class AnkiEditorController: UITableViewController {
     }
     @objc private func textChanged(_ notification: Notification) { guard let view = notification.object as? UITextView else { return }; if view.tag == -1 { tags = view.text } else if fields.indices.contains(view.tag) { fields[view.tag] = view.text } }
     override func tableView(_ tableView: UITableView, didSelectRowAt p: IndexPath) {
-        tableView.deselectRow(at: p, animated: true); guard p.section == 0, note == nil else { return }
+        tableView.deselectRow(at: p, animated: true)
+        if p.section > 0 {
+            let stack = tableView.cellForRow(at: p)?.contentView.subviews.first as? UIStackView
+            (stack?.arrangedSubviews.last as? UITextView)?.becomeFirstResponder(); return
+        }
+        guard note == nil else { return }
         do {
             let values = p.row == 0 ? try state.collection.notetypes() : try state.collection.decks()
             navigationController?.pushViewController(PlanningChoiceController(title: p.row == 0 ? "Note Type" : "Deck", values: values.map { ($0["name"].string, "") }, selected: values.firstIndex { $0["id"].string == (p.row == 0 ? typeID : deckID) } ?? 0) { [weak self] i in
@@ -98,7 +105,7 @@ final class AnkiBrowserController: UITableViewController, UISearchResultsUpdatin
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt p: IndexPath) {
         guard !isEditing else { return }; tableView.deselectRow(at: p, animated: true)
-        do { let card = try state.collection.getCard(ids[p.row]); let note = try state.collection.getNote(card["noteId"].string); let editor = AnkiEditorController(state: state, note: note, deckID: card["deckId"].string); editor.onSave = { [weak self] in self?.reload() }; present(UINavigationController(rootViewController: editor), animated: true) } catch { showError(error) }
+        do { let card = try state.collection.getCard(ids[p.row]); let note = try state.collection.getNote(card["noteId"].string); let editor = AnkiEditorController(state: state, note: note, deckID: card["deckId"].string); editor.onSave = { [weak self] in self?.reload() }; presentAnkiEditor(editor) } catch { showError(error) }
     }
     private var selected: [AnkiValue] { (tableView.indexPathsForSelectedRows ?? []).map { .string(ids[$0.row]) } }
     @objc private func suspendSelected() { do { try state.collection.backend.call("Scheduler", "BuryOrSuspendCards", ["cardIds": .array(selected), "mode": .number(0)]); reload() } catch { showError(error) } }
@@ -108,5 +115,13 @@ final class AnkiBrowserController: UITableViewController, UISearchResultsUpdatin
                 guard let self else { return }; do { try self.state.collection.backend.call("Cards", "SetDeck", ["cardIds": .array(cards), "deckId": decks[i]["id"]]); self.reload() } catch { self.showError(error) }
             }, animated: true)
         } catch { showError(error) }
+    }
+}
+
+extension UIViewController {
+    func presentAnkiEditor(_ editor: AnkiEditorController) {
+        let navigation = UINavigationController(rootViewController: editor)
+        navigation.modalPresentationStyle = .fullScreen
+        present(navigation, animated: true)
     }
 }

@@ -6,6 +6,8 @@ final class AnkiOptionsController: PlanningTableController {
     private var original: AnkiValue = .null, selected: AnkiValue = .null
     private var groups: [[AnkiValue]] = []
     private let desktopRefreshSettings: Set<String> = ["rwkvReviewBatchSize", "rwkvReviewRefreshInterval", "rwkvReviewRefreshOnExit", "rwkvReviewCandidateRefreshEnabled"]
+    private let modelNames = ["sm56": "SM56", "sm55": "SM55", "sm40": "SM40v2", "sm36": "SM36", "legacy": "Legacy"]
+    private let precisionNames = ["cards_int4_notes_int8": "Mixed INT4 / INT8", "f32": "F32", "int8": "INT8", "int4": "INT4"]
     private let globalToggles = [("Allow same-day scheduling", "fsrsShortTermWithStepsEnabled"), ("Skip learning/relearning queues", "fsrsLearningQueuesDisabled"), ("New cards ignore review limit", "newCardsIgnoreReviewLimit"), ("Apply all parent limits", "applyAllParentLimits"), ("Balance future review load", "loadBalancerEnabled")]
     private let names = ["Learning", "Daily limits & order", "Memory & retention", "RWKV", "Review experience", "Advanced"]
     init(state: AnkiAppState, deckID: String) { self.state = state; self.deckID = deckID; super.init(style: .insetGrouped) }
@@ -48,8 +50,8 @@ final class AnkiOptionsController: PlanningTableController {
         if p.section == 0 {
             if p.row >= 3 { let setting = globalToggles[p.row - 3]; return PlanningUI.toggle(setting.0, value: original[setting.1].bool, id: "ankiGlobal.\(setting.1)") { [weak self] value in guard let self else { return }; var source = self.original; source[setting.1] = .bool(value); self.save(self.selected, source: source) } }
             if p.row == 0 { return PlanningUI.toggle("Enable FSRS / RWKV scheduling", value: original["fsrs"].bool, id: "ankiFSRS") { [weak self] value in guard let self else { return }; var source = self.original; source["fsrs"] = .bool(value); self.save(self.selected, source: source) } }
-            if p.row == 1 { return PlanningUI.cell("RWKV model", value: state.rwkvModel.uppercased(), disclosure: true) }
-            return PlanningUI.cell("RWKV state precision", value: state.rwkvPrecision, disclosure: true)
+            if p.row == 1 { return PlanningUI.cell("RWKV model", value: modelNames[state.rwkvModel] ?? state.rwkvModel, disclosure: true) }
+            return PlanningUI.cell("RWKV state precision", value: precisionNames[state.rwkvPrecision] ?? state.rwkvPrecision, disclosure: true)
         }
         let field = groups[p.section - 1][p.row], key = field["name"].string, value = selected["config"][key]
         if desktopRefreshSettings.contains(key) {
@@ -68,7 +70,8 @@ final class AnkiOptionsController: PlanningTableController {
             guard p.row > 0, p.row < 3 else { return }
             let values = p.row == 1 ? ["sm56", "sm55", "sm40", "sm36", "legacy"] : ["cards_int4_notes_int8", "f32", "int8", "int4"]
             let current = p.row == 1 ? state.rwkvModel : state.rwkvPrecision
-            navigationController?.pushViewController(PlanningChoiceController(title: p.row == 1 ? "RWKV Model" : "State Precision", values: values.map { ($0, "") }, selected: values.firstIndex(of: current) ?? 0) { [weak self] i in if p.row == 1 { self?.state.rwkvModel = values[i] } else { self?.state.rwkvPrecision = values[i] }; self?.tableView.reloadData() }, animated: true); return
+            let labels = values.map { code in (p.row == 1 ? modelNames[code] ?? code : precisionNames[code] ?? code, code == "cards_int4_notes_int8" ? "Cards use INT4; notes use INT8. Match your desktop profile." : "Match your desktop profile.") }
+            navigationController?.pushViewController(PlanningChoiceController(title: p.row == 1 ? "RWKV Model" : "State Precision", values: labels, selected: values.firstIndex(of: current) ?? 0) { [weak self] i in if p.row == 1 { self?.state.rwkvModel = values[i] } else { self?.state.rwkvPrecision = values[i] }; self?.tableView.reloadData() }, animated: true); return
         }
         let field = groups[p.section - 1][p.row], key = field["name"].string, value = selected["config"][key]
         guard !desktopRefreshSettings.contains(key) else { return }
