@@ -100,6 +100,30 @@ fn query_input(v: &Value, latest: Option<&Value>) -> ReviewInput {
         enforce_grade_order: v["enforceGradeOrder"].as_bool().unwrap_or(true),
     }
 }
+fn predict(runtime: &mut RwkvRuntime, input: &ReviewInput) -> Result<Value, String> {
+    let state = runtime.warm_up_state(input);
+    let output = runtime
+        .review(
+            input.clone(),
+            ReviewState {
+                card: state.card.as_deref(),
+                note: state.note.as_deref(),
+                deck: state.deck.as_deref(),
+                preset: state.preset.as_deref(),
+                global: state.global.as_deref(),
+            },
+        )
+        .map_err(|e| e.to_string())?;
+    let review_kind = match input.card_type.unwrap_or(2) {
+        0 | 1 => 0,
+        2 => 1,
+        3 => 2,
+        _ => 3,
+    };
+    Ok(
+        json!({"retrievability":output.retrievability,"intervals":output.intervals,"s90s":output.s90s,"reviewKind":review_kind}),
+    )
+}
 pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, String> {
     let deck = request["deckId"].clone();
     let model = request["model"].as_str().unwrap_or("sm56");
@@ -107,26 +131,13 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
     let precision = request["precision"]
         .as_str()
         .unwrap_or("cards_int4_notes_int8");
-    let mut rows = rpc(
+    let rows = rpc(
         backend,
         "RwkvReviewInputRowsForDeckReviewQueue",
         json!({"deckId":deck,"includeNewCards":true}),
     )?;
     let mut retention_requests = vec![];
-    for (index, row) in rows["rows"]
-        .as_array_mut()
-        .into_iter()
-        .flatten()
-        .enumerate()
-    {
-        let preset = rpc(
-            backend,
-            "GetFsrsPresetForCard",
-            json!({"cid":row["cardId"]}),
-        )?;
-        if let Some(retention) = preset["desiredRetention"].as_f64() {
-            row["targetRetention"] = json!(retention);
-        }
+    for (index, row) in rows["rows"].as_array().into_iter().flatten().enumerate() {
         retention_requests.push(json!({"requestIndex":index,"cardId":row["cardId"],"desiredRetention":row["targetRetention"]}));
     }
     let targets = rpc(
@@ -204,35 +215,10 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
         .map(|t| (int(&t["requestIndex"]), t))
         .collect();
     for (index, row) in rows["rows"].as_array().into_iter().flatten().enumerate() {
-        let latest = previous
-            .get(&int(&row["cardId"]))
-            .map(|i| &history_rows[*i]);
-        let mut input = query_input(row, latest);
+        // Desktop candidate scoring uses the backend row's ordinary state.
+        // Synthetic same-day state is applied only to the displayed card.
+        let mut input = query_input(row, None);
         let target = targets_by_index.get(&(index as i64)).copied();
-        if let Some(target) = target {
-            if target["dynamicDesiredRetentionEnabled"] == true {
-                if let Some(retentions) = target["dynamicDesiredRetentions"]
-                    .as_array()
-                    .filter(|r| r.len() == 4)
-                {
-                    input.target_retentions =
-                        std::array::from_fn(|i| retentions[i].as_f64().map(|r| r as f32));
-                }
-            }
-        }
-        let state = runtime.warm_up_state(&input);
-        let output = runtime
-            .review(
-                input.clone(),
-                ReviewState {
-                    card: state.card.as_deref(),
-                    note: state.note.as_deref(),
-                    deck: state.deck.as_deref(),
-                    preset: state.preset.as_deref(),
-                    global: state.global.as_deref(),
-                },
-            )
-            .map_err(|e| e.to_string())?;
         let intervening = previous
             .get(&input.card_id)
             .map(|i| history_rows.len() - i - 1)
@@ -240,14 +226,10 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
         let target_retention = target
             .and_then(|t| t["intervalTargetDesiredRetention"].as_f64())
             .unwrap_or_else(|| row["targetRetention"].as_f64().unwrap_or(0.9));
-        scores.push(json!({"cardId":input.card_id.to_string(),"retrievability":output.retrievability,"interveningReviews":intervening,"targetRetention":target_retention}));
-        let review_kind = match input.card_type.unwrap_or(2) {
-            0 | 1 => 0,
-            2 => 1,
-            3 => 2,
-            _ => 3,
-        };
-        predictions.insert(input.card_id.to_string(),json!({"retrievability":output.retrievability,"intervals":output.intervals,"s90s":output.s90s,"reviewKind":review_kind}));
+        input.target_retentions = [Some(target_retention as f32); 4];
+        let output = predict(runtime, &input)?;
+        scores.push(json!({"cardId":input.card_id.to_string(),"retrievability":output["retrievability"],"interveningReviews":intervening,"targetRetention":target_retention}));
+        predictions.insert(input.card_id.to_string(), output);
     }
     rpc(
         backend,
@@ -259,7 +241,39 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
         "SetRwkvDeckCountScores",
         json!({"deckId":deck,"scores":scores}),
     )?;
-    Ok(json!({"predictions":predictions,"historyIdentity":history["metadata"]["identity"]}))
+    let queue = rpc(backend, "GetQueuedCards", json!({"fetchLimit":1}))?;
+    if let Some(current) = queue["cards"].as_array().and_then(|c| c.first()) {
+        let cid = &current["card"]["id"];
+        if let Some(row) = rows["rows"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .find(|r| &r["cardId"] == cid)
+        {
+            let latest = previous.get(&int(cid)).map(|i| &history_rows[*i]);
+            let mut input = query_input(row, latest);
+            let preset = rpc(backend, "GetFsrsPresetForCard", json!({"cid":cid}))?;
+            let retention = preset["desiredRetention"].as_f64().unwrap_or(0.9) as f32;
+            input.target_retentions = [Some(retention); 4];
+            if current["states"]["dynamicDesiredRetentionEnabled"] == true {
+                if let Some(values) = current["states"]["dynamicDesiredRetentions"]
+                    .as_array()
+                    .filter(|v| v.len() == 4)
+                {
+                    input.target_retentions =
+                        std::array::from_fn(|i| values[i].as_f64().map(|r| r as f32));
+                }
+            }
+            let mut output = predict(runtime, &input)?;
+            if let Some(previous) = predictions.get(&input.card_id.to_string()) {
+                output["queueReviewKind"] = previous["reviewKind"].clone();
+            }
+            predictions.insert(input.card_id.to_string(), output);
+        }
+    }
+    Ok(
+        json!({"predictions":predictions,"queue":queue,"historyIdentity":history["metadata"]["identity"]}),
+    )
 }
 
 pub fn release(handle: u64) {

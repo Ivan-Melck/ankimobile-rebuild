@@ -5,6 +5,7 @@ final class AnkiOptionsController: PlanningTableController {
     let state: AnkiAppState, deckID: String
     private var original: AnkiValue = .null, selected: AnkiValue = .null
     private var groups: [[AnkiValue]] = []
+    private let desktopRefreshSettings: Set<String> = ["rwkvReviewBatchSize", "rwkvReviewRefreshInterval", "rwkvReviewRefreshOnExit", "rwkvReviewCandidateRefreshEnabled"]
     private let globalToggles = [("Allow same-day scheduling", "fsrsShortTermWithStepsEnabled"), ("Skip learning/relearning queues", "fsrsLearningQueuesDisabled"), ("New cards ignore review limit", "newCardsIgnoreReviewLimit"), ("Apply all parent limits", "applyAllParentLimits"), ("Balance future review load", "loadBalancerEnabled")]
     private let names = ["Learning", "Daily limits & order", "Memory & retention", "RWKV", "Review experience", "Advanced"]
     init(state: AnkiAppState, deckID: String) { self.state = state; self.deckID = deckID; super.init(style: .insetGrouped) }
@@ -33,7 +34,11 @@ final class AnkiOptionsController: PlanningTableController {
     override func numberOfSections(in tableView: UITableView) -> Int { groups.isEmpty ? 0 : groups.count + 1 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 3 + globalToggles.count : groups[section - 1].count }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { section == 0 ? "Collection scheduling" : names[section - 1] }
-    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? { section == 0 ? "RWKV model weights and precision are local profile settings on desktop as well. Match them to the desktop profile you review with." : nil }
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 0 { return "RWKV model weights and precision are local profile settings on desktop as well. Match them to the desktop profile you review with." }
+        if section == 4 { return "Desktop refresh and caching controls are shown for reference. Their saved values remain in your collection." }
+        return nil
+    }
     private func label(_ name: String) -> String {
         if name == "rwkvReviewEnabled" { return "Use RWKV Curve for due dates" }
         if name == "rwkvReviewInstantOrderEnabled" { return "Use RWKV Instant review order" }
@@ -47,6 +52,12 @@ final class AnkiOptionsController: PlanningTableController {
             return PlanningUI.cell("RWKV state precision", value: state.rwkvPrecision, disclosure: true)
         }
         let field = groups[p.section - 1][p.row], key = field["name"].string, value = selected["config"][key]
+        if desktopRefreshSettings.contains(key) {
+            let detail = field["kind"].string == "bool" ? (value.bool ? "On" : "Off") : value.string
+            let cell = PlanningUI.cell(label(key), value: detail); cell.selectionStyle = .none; cell.textLabel?.textColor = .secondaryLabel
+            cell.accessibilityHint = "Saved desktop setting; mobile refresh behavior is still being implemented."
+            return cell
+        }
         if field["kind"].string == "bool" { return PlanningUI.toggle(label(key), value: value.bool, id: "ankiOption.\(key)") { [weak self] enabled in self?.set(key, .bool(enabled)) } }
         let text = field["repeated"].bool ? "\(value.array.count) values" : value == .null ? "Default" : value.string
         return PlanningUI.cell(label(key), value: text, disclosure: true)
@@ -60,6 +71,7 @@ final class AnkiOptionsController: PlanningTableController {
             navigationController?.pushViewController(PlanningChoiceController(title: p.row == 1 ? "RWKV Model" : "State Precision", values: values.map { ($0, "") }, selected: values.firstIndex(of: current) ?? 0) { [weak self] i in if p.row == 1 { self?.state.rwkvModel = values[i] } else { self?.state.rwkvPrecision = values[i] }; self?.tableView.reloadData() }, animated: true); return
         }
         let field = groups[p.section - 1][p.row], key = field["name"].string, value = selected["config"][key]
+        guard !desktopRefreshSettings.contains(key) else { return }
         if field["kind"].string == "bool" { return }
         if field["kind"].string == "enum" {
             let values = field["values"].array.map(\.string)

@@ -232,13 +232,13 @@ final class AnkiCompatibilityTests: XCTestCase {
         _ = try col.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Synthetic", "Context"])
         let settings = try col.deckConfiguration("1")
         var config = settings.selected, algorithm = config["config"], all = settings.all
-        algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true); config["config"] = algorithm; all["fsrs"] = .bool(true); all["fsrsShortTermWithStepsEnabled"] = .bool(true)
+        algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true); algorithm["rwkvReviewMinimumReviewsPerDay"] = .number(2); algorithm["rwkvReviewMinInterveningReviews"] = .number(0); algorithm["rwkvReviewMinElapsedSecs"] = .number(0); config["config"] = algorithm; all["fsrs"] = .bool(true); all["fsrsShortTermWithStepsEnabled"] = .bool(true)
         try col.saveDeckConfiguration(config, deckID: "1", original: all)
         let queued = try XCTUnwrap(col.prepareReview(deckID: "1")["cards"].array.first)
         try col.answer(queued: queued, rating: 4, seconds: 3)
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-        let response = try col.backend.perform("rwkv_prepare", input: ["deckId": .string("1"), "model": .string("sm56"), "path": .string(root.appendingPathComponent("Sources/FlashcardsCore/Resources/RWKV/sm56.bin").path), "precision": .string("cards_int4_notes_int8")])
-        XCTAssertEqual(response["predictions"][queued["card"]["id"].string]["reviewKind"].int, 3)
+        let next = try XCTUnwrap(col.prepareReview(deckID: "1")["cards"].array.first)
+        XCTAssertEqual(next["rwkvPrediction"]["reviewKind"].int, 3)
+        XCTAssertEqual(next["rwkvPrediction"]["queueReviewKind"].int, 1)
         try col.close()
     }
     func testConfigSavePreservesEveryUneditedField() throws {

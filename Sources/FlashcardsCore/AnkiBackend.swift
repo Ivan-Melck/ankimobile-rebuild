@@ -155,6 +155,7 @@ extension AnkiCollection {
         }
         let rwkv = configs["allConfig"].array.contains { $0["config"]["config"]["rwkvReviewEnabled"].bool || $0["config"]["config"]["rwkvReviewInstantOrderEnabled"].bool }
         var predictions: AnkiValue = .object([:])
+        var preparedQueue: AnkiValue?
         if rwkv {
             guard let path = Bundle.module.url(forResource: model, withExtension: "bin", subdirectory: "RWKV")?.path else { throw CollectionError.invalidInput("RWKV model weights are unavailable.") }
             var dynamicReplay = configs["allConfig"].array.contains { entry in
@@ -163,9 +164,10 @@ extension AnkiCollection {
             }
             if let encoded = try? backend.call("Config", "GetConfigJson", ["val": .string("rwkvDynamicPresetReplay")])["json"].string,
                let data = Data(base64Encoded: encoded), let setting = try? JSONDecoder().decode(Bool.self, from: data) { dynamicReplay = setting }
-            predictions = try backend.perform("rwkv_prepare", input: ["deckId": .string(deckID), "model": .string(model), "path": .string(path), "precision": .string(precision), "dynamicPresetReplay": .bool(dynamicReplay)])["predictions"]
+            let prepared = try backend.perform("rwkv_prepare", input: ["deckId": .string(deckID), "model": .string(model), "path": .string(path), "precision": .string(precision), "dynamicPresetReplay": .bool(dynamicReplay)])
+            predictions = prepared["predictions"]; preparedQueue = prepared["queue"]
         }
-        var queue = try queuedCards()
+        var queue = try preparedQueue ?? queuedCards()
         var cards = queue["cards"].array
         for index in cards.indices {
             let card = cards[index]["card"], prediction = predictions[card["id"].string]
