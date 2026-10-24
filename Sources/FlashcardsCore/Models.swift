@@ -97,6 +97,8 @@ public struct ReviewLog: Identifiable, Codable, Equatable, Sendable {
     public var previousIntervalDays: Double
     public var scheduledIntervalDays: Double
     public var durationSeconds: Double
+    /// Preset selected before answering; preserves causal RWKV preset state during replay.
+    public var schedulingPresetID: UUID?
     public init(id: UUID = UUID(), cardID: UUID, deckID: UUID, rating: ReviewRating, reviewedAt: Date,
                 previousState: CardState, previousIntervalDays: Double, scheduledIntervalDays: Double, durationSeconds: Double = 0) {
         self.id = id; self.cardID = cardID; self.deckID = deckID; self.rating = rating; self.reviewedAt = reviewedAt

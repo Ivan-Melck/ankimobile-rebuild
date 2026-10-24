@@ -116,4 +116,63 @@ final class StudyPlanningTests: XCTestCase {
         XCTAssertThrowsError(try s.updateDeckOptions(id: s.defaultDeckID, options: o))
         XCTAssertEqual(try s.exportBackup(), before)
     }
+    func testCalibrationAndFittingUseRealRecordedHistory() throws {
+        let s = try make()
+        for i in 0..<39 { _ = try s.addNote(deckID: s.defaultDeckID, front: "History \(i)", back: "Answer") }
+        try s.mutate { doc in
+            for card in doc.cards {
+                for step in 0..<5 {
+                    let rating: ReviewRating = step == 2 && card.id.uuidString.first!.asciiValue! % 3 == 0 ? .again : (step == 4 ? .easy : .good)
+                    doc.reviewLogs.append(ReviewLog(cardID: card.id, deckID: card.deckID, rating: rating,
+                        reviewedAt: now.addingTimeInterval(Double(-100 + step * step * 4) * 86400),
+                        previousState: step == 0 ? .new : .review, previousIntervalDays: Double(step + 1), scheduledIntervalDays: Double(step + 2), durationSeconds: 8))
+                }
+            }
+        }
+        for engine in [SchedulingEngine.fsrs6, .fsrs7, .rwkvCurve] {
+            var options = s.decks[0].options; options.scheduling = SchedulingOptions(engine: engine)
+            try s.updateDeckOptions(id: s.defaultDeckID, options: options)
+            let result = try s.evaluate(deckID: s.defaultDeckID, now: now)
+            XCTAssertEqual(result.samples, 160)
+            XCTAssertTrue(result.log_loss.isFinite && result.log_loss >= 0)
+            XCTAssertTrue(result.rmse.isFinite && (0...1).contains(result.rmse))
+            if !engine.isRWKV {
+                let parameters = try s.optimize(deckID: s.defaultDeckID, now: now)
+                XCTAssertEqual(parameters.count, engine == .fsrs6 ? 21 : 34)
+                XCTAssertTrue(parameters.allSatisfy(\.isFinite))
+            }
+        }
+    }
+
+    func testNumericFieldsRangesAndEscapedComparisonLiterals() throws {
+        let s = try make()
+        _ = try s.addNote(deckID: s.defaultDeckID, front: "12.5", back: "8")
+        _ = try s.addNote(deckID: s.defaultDeckID, front: "front>10", back: "Literal comparator")
+        XCTAssertEqual(s.search("front>10 back<=8").count, 1)
+        XCTAssertEqual(s.search("front:[12,13)").count, 1)
+        XCTAssertTrue(s.search("front:(12.5,13]").isEmpty)
+        XCTAssertEqual(s.search(#"front\>10"#).first?.note.back, "Literal comparator")
+    }
+    func testLearningAheadOnlyWhenOtherQueuesAreEmpty() throws {
+        let s = try make(), id = s.cards[0].id
+        _ = try s.answer(cardID: id, rating: .again, now: now)
+        XCTAssertTrue(s.studyQueue(now: now).isEmpty)
+        var options = s.decks[0].options; options.scheduling?.learnAheadMinutes = 10
+        try s.updateDeckOptions(id: s.defaultDeckID, options: options)
+        XCTAssertEqual(s.studyQueue(now: now).first?.id, id)
+        _ = try s.addNote(deckID: s.defaultDeckID, front: "Other", back: "Card")
+        XCTAssertFalse(s.studyQueue(now: now).contains { $0.id == id })
+    }
+    func testDynamicPresetIsLoggedBeforeCardPropertiesChange() throws {
+        let s = try make(.rwkvCurve), id = s.cards[0].id
+        let preset = SchedulingPreset(name: "First answer", options: SchedulingOptions(engine: .rwkvCurve)); try s.savePreset(preset)
+        var options = s.decks[0].options; options.rules = [SchedulingRule(query: "prop:reps=0", retention: 0.95, presetID: preset.id)]
+        try s.updateDeckOptions(id: s.defaultDeckID, options: options)
+        let log = try s.answer(cardID: id, rating: .good, now: now)
+        XCTAssertEqual(log.schedulingPresetID, preset.id)
+        let prediction = try s.prediction(cardID: id, now: now.addingTimeInterval(86400))
+        let restored = try CollectionStore(); try restored.restoreBackup(s.exportBackup())
+        XCTAssertEqual(try restored.prediction(cardID: id, now: now.addingTimeInterval(86400)), prediction)
+    }
+
 }

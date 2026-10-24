@@ -42,7 +42,7 @@ final class PresetsController: UITableViewController {
     }
 }
 
-final class SchedulingRulesController: UITableViewController {
+final class SchedulingRulesController: PlanningTableController {
     private let model: AppModel; private let deckID: UUID
     private var rules: [SchedulingRule] { model.store.decks.first { $0.id == deckID }?.options.rules ?? [] }
     init(model: AppModel, deckID: UUID) { self.model = model; self.deckID = deckID; super.init(style: .insetGrouped) }

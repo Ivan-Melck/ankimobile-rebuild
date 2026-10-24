@@ -1,7 +1,7 @@
 import UIKit
 import FlashcardsCore
 
-final class StudyPlanController: UITableViewController {
+final class StudyPlanController: PlanningTableController {
     private let model: AppModel
     private var deckID: UUID
     private var days = 30
@@ -127,7 +127,7 @@ private final class ForecastCell: UITableViewCell {
         let percent = Int((p.retention * 100).rounded())
         heading.text = "\(percent)% retention" + (selected ? "  ·  Current" : "")
         metrics.text = String(format: "%.1f min/day   ·   %.0f reviews/day", p.seconds / Double(days) / 60, Double(p.reviews) / Double(days))
-        retained.text = String(format: "≈ %.0f cards remembered at day %d  ·  %.1f cards/min", p.memorized, days, p.efficiency)
+        retained.text = p.seconds > 0 ? String(format: "≈ %.0f cards remembered at day %d  ·  %.1f cards/min", p.memorized, days, p.efficiency) : String(format: "≈ %.0f cards remembered at day %d  ·  No review time projected", p.memorized, days)
         bar.progress = Float(maxSeconds > 0 ? p.seconds / maxSeconds : 0)
         accessibilityIdentifier = "forecast.\(percent)"
     }

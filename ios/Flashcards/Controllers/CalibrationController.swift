@@ -1,7 +1,7 @@
 import UIKit
 import FlashcardsCore
 
-final class CalibrationController: UITableViewController {
+final class CalibrationController: PlanningTableController {
     private let model: AppModel; private let deckID: UUID
     private var busy = false, timeSeries = false
     private var result: CalibrationResult?, parameters: [Double]?, message: String?
@@ -24,6 +24,7 @@ final class CalibrationController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt p: IndexPath) -> UITableViewCell {
         if p.section == 0 {
             if p.row == 0 { return PlanningUI.cell("Active model", value: settings.engine.title, symbol: "brain") }
+            if p.row == 1, settings.engine.isRWKV { let c = PlanningUI.cell("Evaluation", value: "Causal replay"); c.selectionStyle = .none; return c }
             if p.row == 1 { return PlanningUI.toggle("Time-series validation", value: timeSeries, id: "timeSeriesValidation") { [weak self] value in self?.timeSeries = value; self?.result = nil; self?.message = nil; self?.tableView.reloadData() } }
             let cell = PlanningUI.cell(busy ? "Working…" : "Evaluate predictions", symbol: "waveform.path.ecg"); cell.accessibilityIdentifier = "evaluatePredictions"; cell.textLabel?.textColor = PlanningUI.accent; return cell
         }
@@ -57,7 +58,7 @@ final class CalibrationController: UITableViewController {
     }
 }
 
-final class CardInsightsController: UITableViewController {
+final class CardInsightsController: PlanningTableController {
     private let model: AppModel; private let cardID: UUID
     private var prediction: MemoryPrediction?, failure: String?
     init(model: AppModel, cardID: UUID) { self.model = model; self.cardID = cardID; super.init(style: .insetGrouped) }
@@ -82,6 +83,6 @@ final class CardInsightsController: UITableViewController {
             return PlanningUI.cell("Difficulty", value: value.difficulty.map { String(format: "%.1f / 10", $0) } ?? "Neural model")
         }
         let days = value.intervals[p.row] ?? 0
-        return PlanningUI.cell(ReviewRating.allCases[p.row].displayName, value: days < 1 ? String(format: "%.0f min", days * 1440) : String(format: "%.1f days", days))
+        return PlanningUI.cell(ReviewRating.allCases[p.row].displayName, value: days < 1 / 1440 ? String(format: "%.0f sec", max(1, days * 86400)) : days < 1 ? String(format: "%.0f min", days * 1440) : String(format: "%.1f days", days))
     }
 }

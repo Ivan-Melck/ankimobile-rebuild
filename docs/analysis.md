@@ -21,7 +21,7 @@ All evidence paths below are relative to the local `analysis/evidence/` folder, 
 | Body font archive is SFUI Regular size 14; expand/collapse button uses SFUI Bold size 15 | Nib UIFont objects 38 and 23 | Exact archive values; dynamic-type behavior not verified |
 | Deck rows have a disclosure accessory and a `toggleSectionShown` action | REA nib outlet/action graph | Exact archive relationships; initial rebuild does not implement hierarchy collapse |
 | Web routes include card info, congrats, deck options, statistics, importing, note-type changes and more | REA Svelte active route evidence plus literal node inspection | Shipped route presence does not prove every route is reachable on iOS |
-| Backend includes Rust/rslib and FSRS-related functionality | Backend-generated types and strings | Confirms backend complexity; local scheduler is an approximation |
+| Backend includes Rust/rslib and FSRS-related functionality | Backend-generated types and strings | Confirms backend complexity; Classic is an approximation, while the subsequent fork integration supplies actual FSRS/RWKV engines |
 | Original supports APKG/COLPKG/CSV/TSV/ZIP file associations, `anki:` URLs and home-screen shortcuts | REA plist evidence and `resource-observations.json` | Exact declared capabilities; rebuild only supports its own JSON and CSV/TSV through Tools |
 | Apple asset catalog cannot be decoded here | `resource-asset-catalog.json` | REA reports macOS `assetutil` prerequisite; no icon or asset extraction claim |
 
@@ -38,9 +38,13 @@ No original runtime screenshots were available. The original device IPA cannot b
 ## Outstanding parity work
 
 - Compare every screen and gesture with the original on a physical iOS device; validate iPad/landscape/dynamic type/accessibility layouts.
-- Integrate Anki-compatible collection storage, package/media import/export, production scheduler/FSRS, and custom note templates.
+- Integrate Anki-compatible collection storage, package/media import/export, full upstream scheduling policy parity and custom note templates.
 - Implement AnkiWeb synchronization, profile switching, automatic backups, media playback/recording, image occlusion and typed answers.
 - Implement deck hierarchy/collapse/aggregate limits, filtered/custom study, card flags UI, browser bulk actions, the rich web editor toolbar, richer stats, scratchpad, auto advance, customizable tap actions and gamepad shortcuts.
 - Match all preferences, localization, error recovery, and background/rollover behavior.
 
 These are material gaps. The current app should not be treated as a drop-in replacement for an existing Anki collection.
+
+## Subsequent fork features
+
+The rebuilt UI now includes a native Study Plan and scheduling workflows from JSchoreels/anki. This is a deliberate extension of the reconstructed baseline. It is not evidence that those layouts match the supplied IPA. See [fork integration](fork-integration.md).

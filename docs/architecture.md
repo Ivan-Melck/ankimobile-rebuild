@@ -1,6 +1,6 @@
 # Architecture
 
-The app uses native UIKit table/navigation controllers and a WKWebView for the card document. This matches the architecture visible in the binary's class metadata. There are no third-party runtime dependencies.
+The app uses native UIKit table/navigation controllers and a WKWebView for the card document. This matches the architecture visible in the binary's class metadata. Scheduling runs through a small C ABI into Rust, with the fork’s pinned FSRS and RWKV inference dependencies. The iOS UI remains UIKit.
 
 `AppDelegate` opens one collection in Application Support and creates a shared `AppModel`. Controllers call `CollectionStore` and refresh their views after changes. `AppModel` holds preferences in UserDefaults. `Theme` centralizes the recovered deck counter colors.
 
@@ -12,9 +12,9 @@ This repository is designed for small local collections. It validates and rewrit
 
 Backups use a versioned `flashcards-collection` JSON document. Dates use Foundation's native Codable Date representation (seconds since 2001-01-01), preserving Double precision without epoch conversion. References, unique identifiers, supported schemas, finite intervals, note templates, and undo records are checked during restore. Review history survives note/deck deletion for historical statistics; those logs may reference deleted objects. Any ordinary collection edit clears the single-answer undo record.
 
-Queues prioritize due learning/relearning, then due review, then new cards. Daily limits apply per deck using the local calendar's midnight rollover. Learning cards bypass daily limits. There is no learning-ahead window, hierarchical limit aggregation, sibling burying, or Anki's 4am rollover.
+Queues place learning before, mixed with, or after reviews according to deck settings, followed by new cards. Memory models support recall/relative-overdueness ordering, repeat spacing, and optional learn-ahead when other queues are empty. Daily limits apply per deck using the local calendar's midnight rollover. Learning cards bypass daily limits. Hierarchical limit aggregation, sibling burying, and Anki's 4am rollover remain unimplemented.
 
-`ApproximateLocalScheduler` implements a deliberately small local policy. Again/Hard/Good on a new card schedule 1/6/10 minutes; a second Good graduates to one day; Easy graduates to four days. Review intervals scale by ease and lapses return to learning. Replace the `ReviewScheduler` implementation for a production scheduling engine.
+`ApproximateLocalScheduler` implements a deliberately small local policy. Again/Hard/Good on a new card schedule 1/6/10 minutes; a second Good graduates to one day; Easy graduates to four days. Review intervals scale by ease and lapses return to learning. Existing Classic backups retain this policy. New app collections and decks use FSRS-7. `StudyPlanning.swift` and `NativeEngine/src/lib.rs` integrate the fork’s actual FSRS-6/7 and RWKV engines, with derived history replay caches. See [fork integration](fork-integration.md) for presets, rules, simulation, and analysis boundaries.
 
 Card fields are rendered as authored HTML. JavaScript and external resources are disabled in the isolated card WKWebView; embedded `data:` images/media and inline CSS are allowed. This differs from Anki's custom JavaScript and media behavior. Native study buttons stay outside the web document so their actions are independent of a card template.
 

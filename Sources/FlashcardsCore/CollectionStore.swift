@@ -168,16 +168,18 @@ public final class CollectionStore {
             guard durationSeconds.isFinite, durationSeconds >= 0, now.timeIntervalSince1970.isFinite else { throw CollectionError.invalidInput("Invalid review time.") }
             guard let index = doc.cards.firstIndex(where: { $0.id == cardID }) else { throw CollectionError.notFound("Card not found.") }
             let old = doc.cards[index]
-            guard !old.suspended, !old.isBuried(at: now), old.state == .new || old.due <= now || Self.options(in: doc, deckID: old.deckID, card: old, now: now).engine == .rwkvInstant else {
+            guard !old.suspended, !old.isBuried(at: now), old.state == .new || old.due <= now || Self.options(in: doc, deckID: old.deckID, card: old, now: now).engine == .rwkvInstant ||
+                ((old.state == .learning || old.state == .relearning) && Self.queue(in: doc, deckID: old.deckID, now: now, calendar: self.calendar).contains { $0.id == old.id }) else {
                 throw CollectionError.invalidInput("This card is suspended, buried, or not due yet.")
             }
             let next = try advancedSchedule(card: old, rating: rating, now: now, doc: doc) ?? scheduler.schedule(card: old, rating: rating, at: now)
             guard next.id == old.id, next.noteID == old.noteID, next.deckID == old.deckID,
                   next.templateIndex == old.templateIndex, next.suspended == old.suspended, next.flag == old.flag,
                   next.due > now else { throw CollectionError.invalidInput("The scheduler returned an invalid card.") }
-            let log = ReviewLog(cardID: cardID, deckID: old.deckID, rating: rating, reviewedAt: now,
+            var log = ReviewLog(cardID: cardID, deckID: old.deckID, rating: rating, reviewedAt: now,
                                 previousState: old.state, previousIntervalDays: old.intervalDays,
                                 scheduledIntervalDays: next.intervalDays, durationSeconds: durationSeconds)
+            log.schedulingPresetID = Self.effectivePresetID(in: doc, deckID: old.deckID, card: old, now: now)
             doc.cards[index] = next; doc.reviewLogs.append(log); doc.undo = ReviewUndo(card: old, logID: log.id)
             return log
         }
@@ -309,6 +311,7 @@ public final class CollectionStore {
         for deck in doc.decks where deckID == nil || deck.id == deckID {
             let options = Self.options(in: doc, deckID: deck.id)
             var scores: [UUID: Double] = [:]
+            var deferredLearning: [StudyCard] = []
             let candidates = all.filter { item in
                 let card = item.card
                 guard card.deckID == deck.id, !card.suspended, !card.isBuried(at: now) else { return false }
@@ -317,7 +320,10 @@ public final class CollectionStore {
                     let last = doc.reviewLogs[index]
                     if now.timeIntervalSince(last.reviewedAt) < Double(effective.minimumSeconds) { return false }
                     let intervening = doc.reviewLogs.suffix(from: index + 1).filter { $0.cardID != card.id && $0.reviewedAt <= now }.count
-                    if intervening < effective.minimumOtherReviews { return false }
+                    if intervening < effective.minimumOtherReviews {
+                        if effective.engine == .rwkvInstant && (card.state == .learning || card.state == .relearning) && card.due <= now { deferredLearning.append(item) }
+                        return false
+                    }
                 }
                 let needsScore = effective.engine == .rwkvInstant || options.reviewOrder == .lowRecall || options.reviewOrder == .relativeOverdueness
                 if needsScore, effective.engine != .legacy, card.state != .new,
@@ -331,27 +337,37 @@ public final class CollectionStore {
             let introduced = Set(logs.filter { $0.deckID == deck.id && $0.previousState == .new }.map(\.cardID)).count
             let reviewed = Set(logs.filter { $0.deckID == deck.id && $0.previousState == .review }.map(\.cardID)).count
             let new = candidates.filter { $0.card.state == .new }.sorted { cardOrder($0.card, $1.card) }.prefix(max(0, deck.options.newCardsPerDay - introduced))
-            let reviews = candidates.filter { $0.card.state == .review }.sorted {
+            let reviewOrder: (StudyCard, StudyCard) -> Bool = { a, b in
                 switch options.reviewOrder {
                 case .lowRecall, .relativeOverdueness:
-                    if let a = scores[$0.id], let b = scores[$1.id], a != b { return a < b }
-                case .intervalAscending: if $0.card.intervalDays != $1.card.intervalDays { return $0.card.intervalDays < $1.card.intervalDays }
-                case .intervalDescending: if $0.card.intervalDays != $1.card.intervalDays { return $0.card.intervalDays > $1.card.intervalDays }
+                    if let a = scores[a.id], let b = scores[b.id], a != b { return a < b }
+                case .intervalAscending: if a.card.intervalDays != b.card.intervalDays { return a.card.intervalDays < b.card.intervalDays }
+                case .intervalDescending: if a.card.intervalDays != b.card.intervalDays { return a.card.intervalDays > b.card.intervalDays }
                 case .due:
-                    if options.engine == .rwkvInstant, let a = scores[$0.id], let b = scores[$1.id], a != b { return a < b }
+                    if options.engine == .rwkvInstant, let a = scores[a.id], let b = scores[b.id], a != b { return a < b }
                 }
-                return cardOrder($0.card, $1.card)
-            }.prefix(max(0, deck.options.reviewCardsPerDay - reviewed))
-            let learning = candidates.filter { $0.card.state == .learning || $0.card.state == .relearning }.sorted { cardOrder($0.card, $1.card) }
+                return cardOrder(a.card, b.card)
+            }
+            let reviews = candidates.filter { $0.card.state == .review }.sorted(by: reviewOrder).prefix(max(0, deck.options.reviewCardsPerDay - reviewed))
+            var learning = candidates.filter { $0.card.state == .learning || $0.card.state == .relearning }.sorted(by: reviewOrder)
+            if new.isEmpty && reviews.isEmpty && learning.isEmpty {
+                learning = deferredLearning.sorted(by: reviewOrder)
+                if learning.isEmpty, (options.learnAheadMinutes ?? 0) > 0 {
+                    learning = all.filter { item in
+                        let c = item.card
+                        guard c.deckID == deck.id, !c.suspended, !c.isBuried(at: now), c.state == .learning || c.state == .relearning,
+                              c.due > now, c.due.timeIntervalSince(now) <= Double(options.learnAheadMinutes ?? 0) * 60 else { return false }
+                        let effective = Self.options(in: doc, deckID: deck.id, card: c, now: now)
+                        guard let i = doc.reviewLogs.lastIndex(where: { $0.cardID == c.id }) else { return true }
+                        return now.timeIntervalSince(doc.reviewLogs[i].reviewedAt) >= Double(effective.minimumSeconds) &&
+                            doc.reviewLogs.suffix(from: i + 1).filter { $0.cardID != c.id && $0.reviewedAt <= now }.count >= effective.minimumOtherReviews
+                    }.sorted { cardOrder($0.card, $1.card) }
+                }
+            }
             switch options.learningOrder {
             case .before: output += learning + Array(reviews) + Array(new)
             case .after: output += Array(reviews) + learning + Array(new)
-            case .mixed:
-                var mixed: [StudyCard] = []; let revs = Array(reviews)
-                for i in 0..<max(learning.count, revs.count) {
-                    if i < revs.count { mixed.append(revs[i]) }; if i < learning.count { mixed.append(learning[i]) }
-                }
-                output += mixed + Array(new)
+            case .mixed: output += (learning + Array(reviews)).sorted(by: reviewOrder) + Array(new)
             }
         }
         return output

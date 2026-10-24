@@ -12,24 +12,24 @@ Reference: JSchoreels/anki at `96af4ca9d214e71743b1186fd2ceab1a7e7e3f32`.
 | F32 / INT8 / INT4 recurrent state | Advanced options include the fork’s mixed INT4-card / INT8-note default |
 | Desired retention | A focused percentage slider and the Study Plan comparison; 70–99% |
 | Same-day scheduling / skip queues | Explicit deck switches; sub-day scheduling down to one second |
-| Review priority / repeat spacing | Due date, recall, relative overdueness, interval order; minimum elapsed seconds and intervening reviews |
-| Intraday learning placement | Before, mixed with, or after review cards |
+| Review priority / repeat spacing | Due date, recall, relative overdueness, interval order; minimum elapsed seconds and intervening reviews, with the Instant last-learning-card exception |
+| Intraday learning placement | Before, mixed with, or after review cards; optional 0–60 minute learn-ahead only when other queues are empty |
 | Dynamic desired retention / presets | Ordered card-search rules can override retention and select a saved shared preset |
 | Help Me Decide / workload simulation | Actual FSRS or RWKV simulation of this deck at 80/85/90/95%; 30/90/365-day horizon, review cost, memorized cards and efficiency |
 | Calibration | FSRS final-fit and time-series validation, or causal RWKV replay; log loss and recall-bin RMSE |
 | Parameter optimization | Fits FSRS-6/7 after 100 follow-up reviews; preview then apply fitted parameters |
 | Card predictions | Reviewer → Study Actions → Card Insights; recall, stability, difficulty where available, and four raw answer intervals |
-| Numeric and field searches | `prop:ivl>=10`, `prop:reps`, `prop:lapses`, `prop:ease`, `prop:due`, `front:`, `back:`, quoting and backslash escaping |
+| Numeric and field searches | `prop:ivl>=10`, `prop:reps`, `prop:lapses`, `prop:ease`, `prop:due`, `front:`, `back:`, `Front>5`, `Back:[1,10)`, quoting and escaped literal comparisons |
 
 ## Deliberate platform boundaries and remaining differences
 
 This is a native mobile integration of the fork’s scheduling features, not a port of its complete desktop application. Qt webviews, desktop add-on execution, installer/update mechanisms, Python packaging, and platform-specific desktop optimizations do not belong in the iOS UI.
 
-The fork’s collection-wide SQLite cache/checkpoint management is replaced by a rebuildable in-process inference cache over the rebuild’s JSON review history. No opaque neural state is required in backups. Switching models, restoring a backup or undoing an answer replays the recorded history. The cache is derived; backups retain source reviews, presets, rules and FSRS parameters. Historic imported Anki collections are not supported by this rebuild yet; CSV imports start new cards. Existing local backups without scheduling fields keep Classic scheduling. Fresh app collections start with FSRS-7.
+The fork’s collection-wide SQLite cache/checkpoint management is replaced by a rebuildable in-process inference cache over the rebuild’s JSON review history. No opaque neural state is required in backups. Answers record the preset chosen before card properties change, preserving dynamic preset routing on replay. Switching models, restoring a backup or undoing an answer replays the recorded history. The cache is derived; backups retain source reviews, presets, rules and FSRS parameters. Historic imported Anki collections are not supported by this rebuild yet; CSV imports start new cards. Existing local backups without scheduling fields keep Classic scheduling. Fresh app collections start with FSRS-7.
 
 Forecasts compare **uniform retention** on the selected deck. They respect deck size, current memory history, maximum interval and daily limits. Conditional rules, repeat-spacing constraints and learning placement are not modeled by the forecast. The engine’s workload simulation uses its standard review-time/rating assumptions rather than fitted user timing. The iOS retention comparison does not expose every desktop simulator sweep, cost-ADR training, advanced classifier option, graph, diagnostic or optimizer hyperparameter. These are not claimed as implemented. Estimates are labeled as estimates in the UI.
 
-RWKV Instant’s fallback due-date calculator is fixed to FSRS-7 in this implementation. Recall and relative-overdueness ordering require a memory model. Classic preserves the original rebuild scheduler; its advanced model-only controls have no effect. The local search grammar remains an explicit subset of Anki’s full search language, limited to the two editable note fields and documented properties.
+RWKV Instant’s fallback due-date calculator is fixed to FSRS-7 in this implementation. Recall and relative-overdueness ordering require a memory model. Classic preserves the original rebuild scheduler; model-only controls are hidden. The local search grammar remains an explicit subset of Anki’s full search language, limited to the two editable note fields and documented properties.
 
 ## Architecture / modification points
 

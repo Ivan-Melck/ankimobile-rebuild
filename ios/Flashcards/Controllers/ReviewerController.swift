@@ -12,6 +12,7 @@ final class ReviewerController: UIViewController, UIGestureRecognizerDelegate {
     private let actions = UIStackView()
     private var shownHTML = ""
     private var startedAt = Date()
+    private var waitingTimer: Timer?
 
     init(model: AppModel, deck: Deck) { self.model = model; self.deck = deck; super.init(nibName: nil, bundle: nil) }
     required init?(coder: NSCoder) { fatalError("Use init(model:deck:)") }
@@ -68,7 +69,7 @@ final class ReviewerController: UIViewController, UIGestureRecognizerDelegate {
         render(shownHTML)
     }
     private func currentFromStore(_ id: UUID) {
-        if let updated = model.store.search("").first(where: { $0.card.id == id }) {
+        if let updated = model.store.studyCard(id: id), !updated.card.suspended, !updated.card.isBuried(at: Date()), updated.deck.id == deck.id {
             current = updated; render(revealed ? updated.answerHTML : updated.questionHTML)
         } else { nextCard() }
     }
@@ -117,6 +118,7 @@ final class ReviewerController: UIViewController, UIGestureRecognizerDelegate {
         catch { showError(error) }
     }
     private static func interval(_ seconds: TimeInterval) -> String {
+        if seconds < 60 { return "\(max(1, Int(seconds.rounded())))s" }
         if seconds < 3600 { return "\(max(1, Int((seconds / 60).rounded())))m" }
         if seconds < 86400 { return "\(Int((seconds / 3600).rounded()))h" }
         return "\(Int((seconds / 86400).rounded()))d"
@@ -146,7 +148,15 @@ final class ReviewerController: UIViewController, UIGestureRecognizerDelegate {
          UIKeyCommand(input: "3", modifierFlags: [], action: #selector(ratingPressed(_:))),
          UIKeyCommand(input: "4", modifierFlags: [], action: #selector(ratingPressed(_:)))]
     }
-    override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); becomeFirstResponder() }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated); becomeFirstResponder()
+        waitingTimer?.invalidate()
+        waitingTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
+            guard let self, self.current == nil, self.presentedViewController == nil else { return }
+            if !self.model.store.studyQueue(deckID: self.deck.id).isEmpty { self.nextCard() }
+        }
+    }
+    override func viewDidDisappear(_ animated: Bool) { super.viewDidDisappear(animated); waitingTimer?.invalidate(); waitingTimer = nil }
     @objc private func spacePressed() { if revealed { rate(.good) } else { showAnswer() } }
     @objc private func ratingPressed(_ command: UIKeyCommand) {
         guard revealed, let input = command.input, let value = Int(input), let rating = ReviewRating(rawValue: value) else { return }

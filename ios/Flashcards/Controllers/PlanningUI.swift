@@ -37,7 +37,7 @@ enum PlanningUI {
             card.leadingAnchor.constraint(equalTo: outer.leadingAnchor, constant: 20), card.trailingAnchor.constraint(equalTo: outer.trailingAnchor, constant: -20),
             card.topAnchor.constraint(equalTo: outer.topAnchor, constant: 16), card.bottomAnchor.constraint(equalTo: outer.bottomAnchor, constant: -4),
             stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 20), stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -20),
-            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 18), stack.bottomAnchor.constraint(lessThanOrEqualTo: card.bottomAnchor, constant: -18)
+            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 18), stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -18)
         ])
         return outer
     }
@@ -74,5 +74,18 @@ extension UIViewController {
             do { try save(alert.textFields?.first?.text ?? "") } catch { self?.showError(error) }
         })
         present(alert, animated: true)
+    }
+}
+
+/// Table headers size themselves to readable text, including accessibility sizes.
+class PlanningTableController: UITableViewController {
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        guard let header = tableView.tableHeaderView else { return }
+        let size = header.systemLayoutSizeFitting(CGSize(width: tableView.bounds.width, height: UIView.layoutFittingCompressedSize.height), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+        let height = max(120, ceil(size.height))
+        if abs(header.frame.height - height) > 1 {
+            header.frame.size.height = height; tableView.tableHeaderView = header
+        }
     }
 }

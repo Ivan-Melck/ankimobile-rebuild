@@ -31,6 +31,8 @@ struct Event {
     id: i64,
     note: i64,
     deck: i64,
+    #[serde(default)]
+    preset: Option<i64>,
     time: f64,
     rating: u8,
     seconds: f32,
@@ -160,7 +162,7 @@ fn input(r: &Request, e: &Event, query: bool, previous: Option<&Event>) -> Revie
         card_id: e.id,
         note_id: Some(e.note),
         deck_id: Some(e.deck),
-        preset_id: Some(e.deck),
+        preset_id: Some(e.preset.unwrap_or(e.deck)),
         is_query: query,
         ease: if query { None } else { Some(e.rating) },
         duration_millis: if query {
@@ -300,8 +302,17 @@ fn evaluate(r: &Request) -> BridgeResult<Value> {
         if r.time_series {
             return Err("Time-series fitting is available for FSRS. RWKV uses causal replay without training on future answers.".into());
         }
-        with_rwkv(r, |runtime| {
-            runtime.reset_warm_up_state();
+        // Resetting just recurrent state leaves the fork's feature clock intact.
+        // Calibration needs a fresh feature stream as well as fresh memory state.
+        {
+            let mut runtime = RwkvRuntime::load_with_precision(
+                r.path.clone().into(),
+                r.retention,
+                r.max_interval,
+                StatePrecision::parse(&r.precision).map_err(|e| e.to_string())?,
+                ModelKind::parse(&r.model).map_err(|e| e.to_string())?,
+            )
+            .map_err(|e| e.to_string())?;
             let mut last: HashMap<i64, &Event> = HashMap::new();
             let mut sum = 0.0f32;
             let mut count = 0;
@@ -358,7 +369,7 @@ fn evaluate(r: &Request) -> BridgeResult<Value> {
                 .sum::<f32>()
                 / count as f32;
             Ok(json!({"log_loss":sum/count as f32,"rmse":mse.sqrt(),"samples":count}))
-        })
+        }
     } else {
         let n = items.len();
         let metrics = if r.time_series {

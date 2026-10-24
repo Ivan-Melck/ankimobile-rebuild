@@ -1,7 +1,7 @@
 import UIKit
 import FlashcardsCore
 
-final class DecksController: UITableViewController {
+final class DecksController: PlanningTableController {
     private let model: AppModel
     private var decks: [Deck] { model.store.decks.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending } }
     init(model: AppModel) { self.model = model; super.init(style: .plain) }

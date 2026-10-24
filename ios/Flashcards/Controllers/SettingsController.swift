@@ -9,12 +9,13 @@ final class SettingsController: UITableViewController {
         navigationController?.setToolbarHidden(true, animated: false)
     }
     override func numberOfSections(in tableView: UITableView) -> Int { 2 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 2 : 1 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 2 : 3 }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { section == 0 ? "Appearance" : "About" }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
         if indexPath.section == 1 {
-            cell.textLabel?.text = "Flashcards Rebuild"; cell.detailTextLabel?.text = "0.1"; cell.selectionStyle = .none
+            if indexPath.row == 0 { cell.textLabel?.text = "Flashcards Rebuild"; cell.detailTextLabel?.text = "0.2"; cell.selectionStyle = .none }
+            else { cell.textLabel?.text = indexPath.row == 1 ? "Source Code" : "Licenses & Credits"; cell.accessoryType = .disclosureIndicator }
         } else if indexPath.row == 0 {
             cell.textLabel?.text = "Theme"
             let choices = UISegmentedControl(items: ["System", "Light", "Dark"])
@@ -33,7 +34,12 @@ final class SettingsController: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        guard indexPath.section == 0, indexPath.row == 1 else { return }
+        if indexPath.section == 1 {
+            if indexPath.row == 1, let url = URL(string: "https://github.com/Ivan-Melck/ankimobile-rebuild") { UIApplication.shared.open(url) }
+            if indexPath.row == 2 { showMessage("Licenses & Credits", "GNU AGPL version 3 or later. Scheduling features are derived from JSchoreels/anki and Ankitects’ Anki. FSRS is provided by open-spaced-repetition under BSD-3-Clause. Full source, licenses, and model provenance are available through Source Code.") }
+            return
+        }
+        guard indexPath.row == 1 else { return }
         let alert = UIAlertController(title: "Card Text Size", message: "Enter a size from 12 to 48 points.", preferredStyle: .alert)
         alert.addTextField { $0.keyboardType = .numberPad; $0.text = String(Int(self.model.textSize)) }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))

@@ -1,7 +1,7 @@
 import UIKit
 import FlashcardsCore
 
-final class DeckOptionsController: UITableViewController {
+final class DeckOptionsController: PlanningTableController {
     private let model: AppModel
     private let deckID: UUID
     private var deck: Deck? { model.store.decks.first { $0.id == deckID } }
@@ -30,7 +30,7 @@ final class DeckOptionsController: UITableViewController {
         if settings.engine == .legacy && [.learning, .ordering, .analysis, .rules].contains(group) { return 0 }
         if settings.engine == .legacy && group == .scheduling { return 1 }
         switch group {
-        case .identity: return 2; case .scheduling: return 3; case .limits: return 2; case .learning: return 4
+        case .identity: return 2; case .scheduling: return 3; case .limits: return 2; case .learning: return 5
         case .ordering: return 4; case .neural: return settings.engine.isRWKV ? 3 : 0; case .analysis: return 2
         case .rules: return 1; case .delete: return 1
         }
@@ -44,8 +44,8 @@ final class DeckOptionsController: UITableViewController {
         switch Group(rawValue: section)! {
         case .identity: return "Presets share settings across decks. Editing a setting creates a local override; saving a preset updates its linked decks."
         case .scheduling: return settings.engine.detail + " Changing models uses your recorded history; it does not rewrite existing due dates."
-        case .learning: return "Same-day intervals can be as short as one second. Skipping a learning or relearning queue gives those answers an interval of at least one day."
-        case .ordering: return "A repeated card must satisfy both spacing limits. Zero disables a limit."
+        case .learning: return "Same-day intervals can be as short as one second. Skipping a learning or relearning queue gives those answers an interval of at least one day. Learn ahead shows a learning card a little early only when no other cards remain."
+        case .ordering: return "A repeated card must satisfy both spacing limits. Zero disables a limit. When only Instant learning cards remain, the other-review minimum relaxes; the time minimum still applies."
         case .neural: return settings.engine.isRWKV ? "SM56 is the current small model. Compact state reduces memory; F32 favors precision. Grade order keeps Again ≤ Hard ≤ Good ≤ Easy." : nil
         case .rules: return "The first matching rule wins. Use tags, card properties, or a saved preset to adapt scheduling to particular cards."
         case .delete: return "Deleting a deck moves its cards to Default."
@@ -69,7 +69,8 @@ final class DeckOptionsController: UITableViewController {
             case 0: return PlanningUI.toggle("Allow same-day reviews", value: s.allowSameDay, id: "allowSameDay") { [weak self] value in self?.update { $0.allowSameDay = value } }
             case 1: return PlanningUI.toggle("Skip learning steps", value: s.skipLearning, id: "skipLearning") { [weak self] value in self?.update { $0.skipLearning = value } }
             case 2: return PlanningUI.toggle("Skip relearning steps", value: s.skipRelearning, id: "skipRelearning") { [weak self] value in self?.update { $0.skipRelearning = value } }
-            default: return PlanningUI.cell("Learning cards", value: s.learningOrder.title, disclosure: true)
+            case 3: return PlanningUI.cell("Learning cards", value: s.learningOrder.title, disclosure: true)
+            default: return PlanningUI.cell("Learn ahead", value: "\(s.learnAheadMinutes ?? 0) min", disclosure: true)
             }
         case .ordering:
             switch p.row {
@@ -109,6 +110,7 @@ final class DeckOptionsController: UITableViewController {
                 do { try self.model.store.updateDeckOptions(id: self.deckID, options: options); self.reload() } catch { self.showError(error) }
             }
         case .learning:
+            if p.row == 4 { integer("Learn ahead in minutes (0–60)", value: settings.learnAheadMinutes ?? 0) { [weak self] n in self?.update { $0.learnAheadMinutes = n } } }
             if p.row == 3 { let orders = LearningOrder.allCases; choose("Learning Order", values: orders.map { ($0.title, "") }, selected: orders.firstIndex(of: settings.learningOrder) ?? 0) { [weak self] i in self?.update { $0.learningOrder = orders[i] } } }
         case .ordering:
             switch p.row {
@@ -146,16 +148,25 @@ final class RetentionController: UIViewController {
     required init?(coder: NSCoder) { fatalError() }
     override func viewDidLoad() {
         super.viewDidLoad(); title = "Desired Retention"; view.backgroundColor = .systemGroupedBackground
-        let hero = PlanningUI.hero(eyebrow: "Your memory target", title: "Remember more.\nSpend a little more time.", detail: "Choose the chance of recalling a card when it comes up for review.", symbol: "scope")
-        hero.heightAnchor.constraint(equalToConstant: 205).isActive = true
+        let heading = UILabel(); heading.text = "Remember more. Spend a little more time."
+        heading.font = .preferredFont(forTextStyle: .title1); heading.numberOfLines = 0; heading.adjustsFontForContentSizeCategory = true
+        let detail = UILabel(); detail.text = "Choose the chance of recalling a card when it comes up for review."
+        detail.font = .preferredFont(forTextStyle: .body); detail.textColor = .secondaryLabel; detail.numberOfLines = 0; detail.adjustsFontForContentSizeCategory = true
         percent.font = .systemFont(ofSize: 64, weight: .semibold); percent.textAlignment = .center; percent.textColor = PlanningUI.accent
         let slider = UISlider(); slider.minimumValue = 70; slider.maximumValue = 99; slider.value = Float(value * 100); slider.tintColor = PlanningUI.accent; slider.accessibilityIdentifier = "retentionSlider"
         slider.addAction(UIAction { [weak self] _ in self?.value = Double(slider.value.rounded()) / 100; self?.refresh() }, for: .valueChanged)
         let note = UILabel(); note.text = "70% · lighter workload                         99% · more reviews"; note.font = .preferredFont(forTextStyle: .caption1); note.textColor = .secondaryLabel; note.numberOfLines = 0
         let button = Theme.button("Use this target", identifier: "saveRetention", action: UIAction { [weak self] _ in guard let self else { return }; self.save(self.value); self.navigationController?.popViewController(animated: true) })
         button.backgroundColor = PlanningUI.accent; button.tintColor = .white; button.layer.cornerRadius = 14
-        let stack = UIStackView(arrangedSubviews: [hero, percent, slider, note, button]); stack.axis = .vertical; stack.spacing = 24; stack.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(stack)
-        NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20), stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20), stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)])
+        let stack = UIStackView(arrangedSubviews: [heading, detail, percent, slider, note, button]); stack.axis = .vertical; stack.spacing = 24; stack.translatesAutoresizingMaskIntoConstraints = false
+        let scroll = UIScrollView(); scroll.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(scroll); scroll.addSubview(stack)
+        NSLayoutConstraint.activate([
+            scroll.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor), scroll.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            scroll.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor), scroll.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor, constant: 24), stack.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor, constant: -24),
+            stack.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor, constant: 32), stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -32),
+            stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -48)
+        ])
         refresh()
     }
     private func refresh() { percent.text = "\(Int((value * 100).rounded()))%" }

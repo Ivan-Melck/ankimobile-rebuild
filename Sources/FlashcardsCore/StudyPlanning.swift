@@ -28,6 +28,7 @@ public struct SchedulingOptions: Codable, Equatable, Sendable {
     public var engine: SchedulingEngine = .fsrs7
     public var desiredRetention: Double = 0.9
     public var maximumInterval: Int = 36500
+    public var learnAheadMinutes: Int?
     public var allowSameDay: Bool = true
     public var skipLearning: Bool = false
     public var skipRelearning: Bool = false
@@ -43,7 +44,7 @@ public struct SchedulingOptions: Codable, Equatable, Sendable {
     public init(engine: SchedulingEngine = .fsrs7) { self.engine = engine }
     public func validate() throws {
         guard desiredRetention.isFinite, (0.7...0.99).contains(desiredRetention), (1...36500).contains(maximumInterval),
-              (0...10000).contains(minimumOtherReviews), (0...86400).contains(minimumSeconds),
+              (0...60).contains(learnAheadMinutes ?? 0), (0...10000).contains(minimumOtherReviews), (0...86400).contains(minimumSeconds),
               ["sm56", "sm55", "sm40", "sm36", "legacy"].contains(rwkvModel),
               ["f32", "int8", "int4", "cards_int4_notes_int8"].contains(precision),
               parameters.allSatisfy({ $0.isFinite }), parameters.isEmpty || parameters.count == (engine == .fsrs6 ? 21 : 34) else {
@@ -87,7 +88,7 @@ public struct CalibrationResult: Decodable, Sendable {
     public var samples: Int
 }
 struct NativeEvent: Encodable {
-    var id: Int64; var note: Int64; var deck: Int64; var time: Double; var rating: Int
+    var id: Int64; var note: Int64; var deck: Int64; var preset: Int64?; var time: Double; var rating: Int
     var seconds: Double; var state: Int; var interval: Double; var reps: Int; var lapses: Int
 }
 struct NativeRequest: Encodable {
@@ -114,7 +115,7 @@ enum NativeScheduling {
         return Int64(bytes.prefix(8).reduce(UInt64(0)) { ($0 << 8) | UInt64($1) } & 0x7fff_ffff_ffff_ffff)
     }
     static func event(_ card: Card, time: Date) -> NativeEvent {
-        NativeEvent(id: numericID(card.id), note: numericID(card.noteID), deck: numericID(card.deckID),
+        NativeEvent(id: numericID(card.id), note: numericID(card.noteID), deck: numericID(card.deckID), preset: nil,
                     time: time.timeIntervalSince1970, rating: 3, seconds: 0,
                     state: card.state == .new ? 0 : card.state == .learning ? 1 : card.state == .review ? 2 : 3,
                     interval: card.intervalDays, reps: card.reps, lapses: card.lapses)
@@ -124,7 +125,7 @@ enum NativeScheduling {
         let cardMap = Dictionary(uniqueKeysWithValues: doc.cards.map { ($0.id, $0) })
         let history = doc.reviewLogs.filter { $0.reviewedAt <= now }.sorted { $0.reviewedAt < $1.reviewedAt }.compactMap { log -> NativeEvent? in
             guard var e = cardMap[log.cardID].map({ event($0, time: log.reviewedAt) }) else { return nil }
-            e.deck = numericID(log.deckID); e.rating = log.rating.rawValue; e.seconds = log.durationSeconds
+            e.deck = numericID(log.deckID); e.preset = log.schedulingPresetID.map(numericID); e.rating = log.rating.rawValue; e.seconds = log.durationSeconds
             e.interval = log.previousIntervalDays; e.reps = 0; e.lapses = 0
             e.state = log.previousState == .new ? 0 : log.previousState == .learning ? 1 : log.previousState == .review ? 2 : 3
             return e
@@ -134,8 +135,14 @@ enum NativeScheduling {
         return NativeRequest(op: op, engine: options.engine.isRWKV ? "rwkv" : options.engine.rawValue,
             model: options.rwkvModel, path: path, precision: options.precision, retention: options.desiredRetention,
             max_interval: options.maximumInterval, parameters: options.parameters, history: history,
-            cards: doc.cards.filter { (deckID == nil || $0.deckID == deckID) && !$0.suspended && !$0.isBuried(at: now) }.map { event($0, time: now) },
-            card: card.map { event($0, time: now) }, days: days, new_limit: deck?.options.newCardsPerDay ?? 20,
+            cards: doc.cards.filter { (deckID == nil || $0.deckID == deckID) && !$0.suspended && !$0.isBuried(at: now) }.map { card in
+                var value = event(card, time: now); value.preset = deck?.options.presetID.map(numericID); return value
+            },
+            card: card.map { card in
+                var value = event(card, time: now)
+                value.preset = CollectionStore.effectivePresetID(in: doc, deckID: card.deckID, card: card, now: now).map(numericID)
+                return value
+            }, days: days, new_limit: deck?.options.newCardsPerDay ?? 20,
             review_limit: deck?.options.reviewCardsPerDay ?? 200, include_same_day: options.includeSameDayInAnalysis,
             grade_order: options.enforceGradeOrder, time_series: timeSeries, scope_deck: deckID.map(numericID))
     }
@@ -164,6 +171,12 @@ extension CollectionStore {
             options.desiredRetention = rule.retention
         }
         return options
+    }
+    static func effectivePresetID(in doc: CollectionDocument, deckID: UUID, card: Card, now: Date) -> UUID? {
+        guard let deck = doc.decks.first(where: { $0.id == deckID }) else { return nil }
+        if let item = Self.studyCards(in: doc).first(where: { $0.id == card.id }),
+           let rule = deck.options.rules?.first(where: { Self.matches(item, query: $0.query, now: now) }), let id = rule.presetID { return id }
+        return deck.options.presetID
     }
     public func prediction(cardID: UUID, now: Date = Date()) throws -> MemoryPrediction {
         try locked {
