@@ -38,7 +38,7 @@ final class AnkiAppState {
         if addNote, let basic = try collection.notetypes().first(where: { $0["name"].string == "Basic" }) {
             let html = #"<img src="fixture.svg" alt="Fixture image" onload="this.insertAdjacentText('afterend','Image ready')"><audio src="fixture.wav" controls preload="auto" autoplay muted oncanplay="if(!this.dataset.ready){this.dataset.ready='1';this.insertAdjacentText('afterend','Audio ready')}"></audio><script>let active=0,finished=0;document.addEventListener('play',e=>{if(e.target.hasAttribute('data-anki-auto')){active++;if(active>1)document.body.append('Audio overlap')}},true);document.addEventListener('ended',e=>{if(e.target.hasAttribute('data-anki-auto')){active--;if(++finished===2)document.body.append('Sequence ready')}},true)</script>[sound:fixture.wav][sound:fixture.wav]"#
             let math = #"<div>\(x^2+1\) \(\ce{H2O}\)</div><script>addEventListener('load',()=>MathJax.startup.promise.then(()=>{if(document.querySelector('mjx-container svg')&&!document.querySelector('[data-mjx-error]'))document.body.append('Math ready')}))</script>"#
-            _ = try collection.addNote(notetypeID: basic["id"].string, deckID: "1", fields: [html + math, "Synthetic media answer"])
+            _ = try collection.addNote(notetypeID: basic["id"].string, deckID: "1", fields: [html + math + "<p>Grüße · 日本語</p>", "Synthetic media answer"])
         }
     }
     private func seedOcclusionFixture() throws {

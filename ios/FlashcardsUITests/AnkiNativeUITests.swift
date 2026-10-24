@@ -67,6 +67,7 @@ final class AnkiNativeUITests: XCTestCase {
         XCTAssertTrue(app.webViews.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Sequence ready")).firstMatch.waitForExistence(timeout: 15))
         XCTAssertFalse(app.webViews.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Audio overlap")).firstMatch.exists)
         XCTAssertTrue(app.webViews.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Math ready")).firstMatch.waitForExistence(timeout: 15))
+        XCTAssertTrue(app.webViews.staticTexts["Grüße · 日本語"].waitForExistence(timeout: 10))
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); attachment.name = "17-Local-Media"; attachment.lifetime = .keepAlways; add(attachment)
     }
     func testImportedImageOcclusionRuntimeDrawsMasksAndRevealsAnswer() {
