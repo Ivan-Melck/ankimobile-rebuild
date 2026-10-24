@@ -21,7 +21,7 @@ final class AnkiAppState {
     private func seedRWKVFixture() throws {
         let settings = try collection.deckConfiguration("1")
         var config = settings.selected, algorithm = config["config"], all = settings.all
-        algorithm["rwkvReviewEnabled"] = .bool(false); algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true); algorithm["fsrsVersion"] = .string("SIX")
+        algorithm["rwkvReviewEnabled"] = .bool(false); algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true); algorithm["fsrsVersion"] = .string("FSRS_VERSION_SIX")
         config["config"] = algorithm; all["fsrs"] = .bool(true)
         try collection.saveDeckConfiguration(config, deckID: "1", original: all)
         guard let basic = try collection.notetypes().first(where: { $0["name"].string == "Basic" }) else { throw CollectionError.invalidInput("Missing RWKV fixture type.") }

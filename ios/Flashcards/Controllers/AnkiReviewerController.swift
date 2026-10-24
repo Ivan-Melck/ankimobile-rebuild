@@ -56,7 +56,7 @@ final class AnkiReviewerController: UIViewController, AVSpeechSynthesizerDelegat
                     self.counts.text = "\(queue["newCount"].int) new   ·   \(queue["learningCount"].int) learning   ·   \(queue["reviewCount"].int) review"
                     if let card = self.queued {
                         let config = card["reviewConfig"]
-                        let version = ["FOUR": "4", "FIVE": "5", "SIX": "6", "SEVEN": "7"][card["effectivePreset"]["fsrsVersion"].string] ?? "7"
+                        let version = ["FSRS_VERSION_FOUR": "4", "FSRS_VERSION_FIVE": "5", "FSRS_VERSION_SIX": "6", "FSRS_VERSION_SEVEN": "7"][card["effectivePreset"]["fsrsVersion"].string] ?? "7"
                         let fallback = queue["fsrsEnabled"].bool ? "FSRS-\(version)" : "SM-2"
                         let curve = card["rwkvPrediction"]["curveEnabled"].bool
                         let instant = card["rwkvPrediction"] != .null && config["rwkvReviewInstantOrderEnabled"].bool

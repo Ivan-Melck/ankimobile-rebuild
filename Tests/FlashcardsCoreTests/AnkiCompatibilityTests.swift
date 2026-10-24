@@ -278,9 +278,10 @@ final class AnkiCompatibilityTests: XCTestCase {
         _ = try col.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["RWKV", "Instant"])
         let settings = try col.deckConfiguration("1")
         var config = settings.selected, algorithm = config["config"], all = settings.all
-        algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true); algorithm["rwkvReviewEnabled"] = .bool(false); config["config"] = algorithm; all["fsrs"] = .bool(true)
+        algorithm["fsrsVersion"] = .string("FSRS_VERSION_SIX"); algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true); algorithm["rwkvReviewEnabled"] = .bool(false); config["config"] = algorithm; all["fsrs"] = .bool(true)
         try col.saveDeckConfiguration(config, deckID: "1", original: all)
         let queued = try XCTUnwrap(col.prepareReview(deckID: "1")["cards"].array.first)
+        XCTAssertEqual(queued["effectivePreset"]["fsrsVersion"].string, "FSRS_VERSION_SIX")
         XCTAssertNotEqual(queued["rwkvPrediction"], .null)
         XCTAssertFalse(queued["rwkvPrediction"]["curveEnabled"].bool)
         var fallbackOnly = queued; fallbackOnly["rwkvPrediction"] = .null
@@ -297,6 +298,7 @@ final class AnkiCompatibilityTests: XCTestCase {
         let package = col.directory.appendingPathComponent("rwkv.colpkg"); try col.exportCollection(to: package)
         let imported = try AnkiCollection.importFile(package, intoNewDirectory: directory(false))
         XCTAssertTrue(try imported.deckConfiguration("1").selected["config"]["rwkvReviewInstantOrderEnabled"].bool)
+        XCTAssertEqual(try imported.deckConfiguration("1").selected["config"]["fsrsVersion"].string, "FSRS_VERSION_SIX")
         let history = try imported.backend.call("Scheduler", "RwkvHistoricalReviewInputs", ["history": .object([:])])
         XCTAssertEqual(history["reviews"].array.count, 1)
         XCTAssertEqual(history["reviews"].array[0]["cardId"].string, queued["card"]["id"].string)
