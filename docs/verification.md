@@ -4,9 +4,13 @@
 
 The full shared backend [simulator run](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40127162417) passed at revision `631760f917ee001afe806e102abba52055cd1293`: host checks, native iOS build and the three existing legacy UI test flows. The new native Anki screens and RWKV collection coordinator are subsequent changes and require their own simulator run.
 
-Local checks now pass 42 core tests (two optional fixture/server tests skip in an ordinary run). These cover actual collection creation/rendering/review/undo, package import, lossless round trips, failed-import isolation, config preservation and RWKV Instant/Curve replay. The isolated sync test is run separately with `scripts/test-sync.sh`. Model vector tests and older JSON-path tests remain separate evidence.
+Local checks now pass 47 core tests (three optional fixture/server tests skip in an ordinary run). These cover actual collection creation/rendering/review/undo, package import, lossless round trips, failed-import isolation, config preservation and RWKV Instant/Curve replay, synthetic same-day context, typed answers and cloze typing. The isolated sync test is run separately with `scripts/test-sync.sh`. Model vector tests and older JSON-path tests remain separate evidence.
 
 With the user's authorization, a private local profile was copied without opening its source database in SQLite. Database/WAL source hashes were verified unchanged after testing. A second disposable copy passed `.colpkg` export/import comparison of **8,478 cards, 6,402 notes, 10 note types, 5 decks, 31,230 canonical RWKV history rows and 13,876 media files**. Every card and note protobuf, template, history row, media filename and media byte sequence matched. No collection contents or media were uploaded. This caught and fixed an automatic repair-on-import operation that rewrote note timestamps.
+
+A separate smoke test warmed the canonical private history and produced 2,057 candidate predictions in approximately 2.2 seconds on the local Linux host. Two synthetic clients also passed full sync, media transfer, note edits, distinct-timestamp conflict convergence, note deletion and review-history sync against the local fork server. Same-second conflicting edits reproduced a pinned-backend limitation and remain unresolved.
+
+The [native UI run at 9a7ccce](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40129073643) compiled the new iOS screens and passed deck-options/sync navigation plus all three legacy UI flows, but caught a blank review document. The main-document/media-base loading fix and subsequent native typing/edit-refresh changes require another simulator run.
 
 This validates preservation for that fixture. Live AnkiWeb, exact desktop RWKV review-order parity, filtered/same-day edge cases and complete rendering/UI parity remain outstanding. See the [compatibility inventory](compatibility.md).
 

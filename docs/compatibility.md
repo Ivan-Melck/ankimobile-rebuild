@@ -11,7 +11,7 @@ sync, and native UI behavior have separate acceptance checks.
 | Capability | Implementation and evidence | Remaining acceptance work |
 | --- | --- | --- |
 | Collection format | Real Anki SQLite, original 64-bit IDs, notes, cards, decks, templates, config bytes and revlogs. No conversion through rebuild JSON. | More historical schemas and interrupted migrations. |
-| Collection packages | Anki's `.colpkg` importer/exporter, including media. Private collection round trip compares every card/note, templates, canonical replay rows and media bytes. | Legacy collection package versions and malformed/encrypted variants. |
+| Collection packages | Anki's `.colpkg` importer/exporter, including media. Private collection round trip compares every card/note, templates, canonical replay rows and media bytes. | More legacy package versions and archive corruption cases. |
 | Deck packages | Anki's `.apkg` importer; upstream media package fixture passes. | Merge conflicts, scheduling-preserving exports and modern package variants. |
 | Search | Complete pinned backend parser and search engine; native browser calls it directly. | Native saved-search/tag navigation, RWKV-dependent search preparation. |
 | Note types and templates | Arbitrary note fields and existing templates retained. Backend renders existing cards. Native source-field editor works with arbitrary fields. | Full template/field management, rich HTML editor and image occlusion authoring. |
@@ -19,14 +19,18 @@ sync, and native UI behavior have separate acceptance checks.
 | Standard scheduling | Actual SM-2 and FSRS 4/5/6/7 scheduler, learning/relearning, limits, parent aggregation, burying, fuzz and rollover from the pinned backend. No reimplementation of these policies. | Broader differential sequences, filtered/custom study UI and custom JavaScript scheduling. |
 | RWKV history | Canonical fork RPC prepares replay rows, including IDs, preset routing, forget semantics and elapsed time. Model/precision are local per-profile settings. | Large-profile replay latency, persistent checkpoints and desktop cache/replay comparisons. |
 | RWKV Instant | Native coordinator scores candidates; backend owns eligibility, ordering and intervening-review constraints. Keeps the stored FSRS fallback version. Import/answer/undo replay test passes. | Exact desktop order/prediction parity for mixed presets, same-day transitions, filtered decks and every routing option. |
-| RWKV Curve | Actual fork inference; answer intervals pass through `SchedulingStatesWithIntervals`. S90 metadata is written only for Curve, not Instant-only reviews. | Grade-dependent dynamic retention, all filtered/relearning contexts, rescheduling and differential desktop parity. |
+| RWKV Curve | Actual fork inference; answer intervals pass through `SchedulingStatesWithIntervals`. S90 metadata is written only for Curve, not Instant-only reviews. Backend grade-dependent retention targets and synthetic same-day kinds are included. | All filtered/relearning contexts, rescheduling and differential desktop parity. Unprepared Curve contexts pause reviews rather than substitute another scheduler. |
 | Deck options | Native grouped editor uses actual backend configuration. Unknown/opaque settings are retained when saving. | More focused advanced workflows, shared-preset selection/creation, simulator/calibration integration with real collections. |
 | Undo | Real backend undo, including scheduling and revlogs. RWKV state is derived again after changed history. | Multi-operation UI, redo and interrupted-session checks. Closing/exporting clears the in-memory undo stack as upstream does. |
-| Sync | Actual fork sync client. Two isolated test clients pass full upload/download, edits and review-history synchronization against the fork server. Native login, Keychain token, cancellation and full-sync choices. | Live AnkiWeb, media conflicts/deletions, concurrent-edit and failure recovery acceptance, all supported self-hosted configurations. |
+| Sync | Actual fork sync client. Two local test clients pass full upload/download, media transfer, edits, review history, conflicting edits with distinct timestamps and note deletions against the fork server. Native login, Keychain token, cancellation and full-sync choices. | Live AnkiWeb, media conflicts/deletions and failure recovery acceptance. Same-second concurrent note edits reproduced divergence in the pinned backend; this remains unresolved. |
 | Profiles and backups | Imports create separate profiles; profile switcher retains previous collections. Full-sync UI creates an Anki backup before replacement. Failed import does not replace a current profile. | Backup restoration UI and all full-sync failure modes. |
-| Rendering runtime | Template JavaScript/CSS, media, front/back rendering and native answer controls. | MathJax, typed-answer handling, built-in image occlusion runtime and desktop reviewer hook equivalence. |
+| Rendering runtime | Template JavaScript/CSS, per-template/mobile/dark body classes, media, front/back rendering, typed answers using the backend comparer, cloze typing and native answer controls. | MathJax, built-in image occlusion runtime and desktop reviewer hook equivalence. |
 | Statistics and tools | Entire shared backend service surface is callable through the bridge. | Native statistics, scheduling analysis, optimizer/calibration and all collection maintenance workflows. Backend exposure alone does not count as a finished UI feature. |
 | Desktop add-ons | Their collection data can remain in Anki's native formats. | Python/Qt add-ons do not execute unchanged on iOS. Their individual behaviors require native ports or supported template JavaScript. |
+
+Custom scheduling scripts are currently preserved but cannot execute. Such a
+collection pauses before reviewing, with a clear explanation; the app must not
+silently ignore scheduling behavior that affects future reviews.
 
 ## Local collection testing
 

@@ -45,7 +45,7 @@ final class AnkiDecksController: PlanningTableController, UIDocumentPickerDelega
         }
         return UISwipeActionsConfiguration(actions: [options, collapse])
     }
-    @objc private func add() { present(UINavigationController(rootViewController: AnkiEditorController(state: state)), animated: true) }
+    @objc private func add() { let editor = AnkiEditorController(state: state); editor.onSave = { [weak self] in self?.reload() }; present(UINavigationController(rootViewController: editor), animated: true) }
     @objc private func browse() { navigationController?.pushViewController(AnkiBrowserController(state: state), animated: true) }
     @objc private func sync() { navigationController?.pushViewController(AnkiSyncController(state: state), animated: true) }
     @objc private func tools() {
@@ -92,7 +92,7 @@ final class AnkiDecksController: PlanningTableController, UIDocumentPickerDelega
     }
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         guard let url = urls.first else { return }
-        guard ["apkg", "colpkg", "anki2", "anki21", "anki21b"].contains(url.pathExtension.lowercased()) else { showMessage("Choose an Anki File", "Import a .colpkg, .apkg or exported collection database."); return }
+        guard ["apkg", "colpkg", "anki2", "anki21"].contains(url.pathExtension.lowercased()) else { showMessage("Choose an Anki File", "Import a .colpkg, .apkg or exported collection database."); return }
         let target = state.profilesURL.appendingPathComponent("import-\(UUID().uuidString)")
         ankiWork({
             let scoped = url.startAccessingSecurityScopedResource(); defer { if scoped { url.stopAccessingSecurityScopedResource() } }

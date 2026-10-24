@@ -8,15 +8,22 @@ final class AnkiReviewerController: UIViewController {
     private var web: AnkiCardWebView!
     private let controls = UIStackView(), counts = UILabel()
     private var audio: AVAudioPlayer?, speech = AVSpeechSynthesizer(), loading = false
+    private var typed: AnkiTypedAnswer?
     init(state: AnkiAppState, deckID: String, name: String) { self.state = state; self.deckID = deckID; super.init(nibName: nil, bundle: nil); title = name }
     required init?(coder: NSCoder) { fatalError() }
     override func viewDidLoad() {
         super.viewDidLoad(); view.backgroundColor = .systemBackground
         web = AnkiCardWebView(media: state.collection.mediaURL); web.onReveal = { [weak self] in self?.reveal() }
+        web.onError = { [weak self] error in
+            guard let self else { return }; self.queued = nil
+            self.controls.arrangedSubviews.forEach { $0.removeFromSuperview() }
+            self.controls.addArrangedSubview(Theme.button("Reload Card", identifier: "ankiReloadCard", action: UIAction { [weak self] _ in self?.next() }))
+            self.showError(error)
+        }
         controls.axis = .horizontal; controls.distribution = .fillEqually; controls.spacing = 8
         counts.font = .preferredFont(forTextStyle: .caption1); counts.textColor = .secondaryLabel; counts.textAlignment = .center
         let stack = UIStackView(arrangedSubviews: [web, counts, controls]); stack.axis = .vertical; stack.spacing = 10; stack.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(stack)
-        NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor), stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor), stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor), stack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10)])
+        NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor), stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor), stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor), stack.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -10)])
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(actions)); navigationItem.rightBarButtonItem?.accessibilityLabel = "Study Actions"
     }
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); navigationController?.setToolbarHidden(true, animated: animated); next() }
@@ -25,22 +32,25 @@ final class AnkiReviewerController: UIViewController {
         guard !loading else { return }; loading = true; queued = nil; revealed = false
         controls.arrangedSubviews.forEach { $0.removeFromSuperview() }; counts.text = "Preparing your next card…"
         let model = state.rwkvModel, precision = state.rwkvPrecision
+        let collection = state.collection
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
-            let result = Result { () -> (AnkiValue, (question: String, answer: String, css: String)?) in
-                let queue = try self.state.collection.prepareReview(deckID: self.deckID, model: model, precision: precision)
-                guard let card = queue["cards"].array.first else { return (queue, nil) }
-                return (queue, try self.state.collection.render(cardID: card["card"]["id"].string))
+            let result = Result { () -> (AnkiValue, (question: String, answer: String, css: String)?, AnkiTypedAnswer?) in
+                let queue = try collection.prepareReview(deckID: self.deckID, model: model, precision: precision)
+                guard let card = queue["cards"].array.first else { return (queue, nil, nil) }
+                let rendered = try collection.render(cardID: card["card"]["id"].string)
+                return (queue, rendered, try collection.typedAnswer(cardID: card["card"]["id"].string, question: rendered.question))
             }
             DispatchQueue.main.async {
                 self.loading = false
                 switch result {
                 case .failure(let error): self.counts.text = "Unable to prepare this review."; self.showError(error)
-                case .success(let (queue, rendering)):
+                case .success(let (queue, rendering, typed)):
+                    self.typed = typed
                     self.queued = queue["cards"].array.first
                     self.counts.text = "\(queue["newCount"].int) new   ·   \(queue["learningCount"].int) learning   ·   \(queue["reviewCount"].int) review"
                     self.started = Date()
-                    if let rendering { self.question = rendering.question; self.answer = rendering.answer; self.css = rendering.css; self.render(self.question, questionSide: true); self.controls.addArrangedSubview(Theme.button("Show Answer", identifier: "ankiShowAnswer", action: UIAction { [weak self] _ in self?.reveal() })) }
+                    if let rendering { self.question = typed?.questionHTML(rendering.question) ?? rendering.question; self.answer = rendering.answer; self.css = rendering.css; self.render(self.question, questionSide: true); self.controls.addArrangedSubview(Theme.button("Show Answer", identifier: "ankiShowAnswer", action: UIAction { [weak self] _ in self?.reveal() })) }
                     else { self.web.show("<h2>You’re done for now</h2><p>Come back when your next cards are due.</p>", css: "", dark: self.traitCollection.userInterfaceStyle == .dark); self.controls.addArrangedSubview(Theme.button("Decks", identifier: "ankiStudyDone", action: UIAction { [weak self] _ in self?.navigationController?.popViewController(animated: true) })) }
                 }
             }
@@ -60,11 +70,25 @@ final class AnkiReviewerController: UIViewController {
                     let utterance = AVSpeechUtterance(string: tag["tts"]["fieldText"].string); utterance.voice = AVSpeechSynthesisVoice(language: tag["tts"]["lang"].string); speech.speak(utterance)
                 }
             }
-            web.show(html, css: css, dark: traitCollection.userInterfaceStyle == .dark)
+            web.show(html, css: css, dark: traitCollection.userInterfaceStyle == .dark, ordinal: queued?["card"]["templateIdx"].int ?? 0)
         } catch { showError(error) }
     }
     private func reveal() {
-        guard let queued, !revealed else { return }; revealed = true; render(answer, questionSide: false)
+        guard let queued, !revealed else { return }; revealed = true
+        if let typed {
+            web.evaluateJavaScript("document.getElementById('typeans')?.value || ''") { [weak self] value, error in
+                guard let self, self.queued?["card"]["id"] == queued["card"]["id"] else { return }
+                do {
+                    if let error { throw error }
+                    let comparison = try self.state.collection.compareTypedAnswer(typed, provided: value as? String ?? "")
+                    self.showAnswer(typed.replacingMarkers(in: self.answer, with: comparison), queued: queued)
+                } catch { self.revealed = false; self.showError(error) }
+            }
+        } else { showAnswer(answer, queued: queued) }
+    }
+    private func showAnswer(_ html: String, queued: AnkiValue) {
+        web.endEditing(true)
+        render(html, questionSide: false)
         controls.arrangedSubviews.forEach { $0.removeFromSuperview() }
         let labels = (try? state.collection.backend.call("Scheduler", "DescribeNextStates", queued["states"].object)["vals"].array.map(\.string)) ?? []
         for (i, title) in ["Again", "Hard", "Good", "Easy"].enumerated() {
@@ -78,7 +102,7 @@ final class AnkiReviewerController: UIViewController {
         let sheet = UIAlertController(title: "Study", message: nil, preferredStyle: .actionSheet)
         sheet.addAction(UIAlertAction(title: "Undo Last Answer", style: .default) { [weak self] _ in guard let self else { return }; do { try self.state.collection.undo(); self.next() } catch { self.showError(error) } })
         if let queued {
-            sheet.addAction(UIAlertAction(title: "Edit Note", style: .default) { [weak self] _ in guard let self else { return }; do { let note = try self.state.collection.getNote(queued["card"]["noteId"].string); self.present(UINavigationController(rootViewController: AnkiEditorController(state: self.state, note: note, deckID: self.deckID)), animated: true) } catch { self.showError(error) } })
+            sheet.addAction(UIAlertAction(title: "Edit Note", style: .default) { [weak self] _ in guard let self else { return }; do { let note = try self.state.collection.getNote(queued["card"]["noteId"].string); let editor = AnkiEditorController(state: self.state, note: note, deckID: self.deckID); editor.onSave = { [weak self] in self?.next() }; self.present(UINavigationController(rootViewController: editor), animated: true) } catch { self.showError(error) } })
             for (title, mode) in [("Suspend Card", 0), ("Bury Card", 2)] { sheet.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in guard let self else { return }; do { try self.state.collection.backend.call("Scheduler", "BuryOrSuspendCards", ["cardIds": .array([queued["card"]["id"]]), "mode": .number(Double(mode))]); self.next() } catch { self.showError(error) } }) }
         }
         sheet.addAction(UIAlertAction(title: "Deck Options", style: .default) { [weak self] _ in guard let self else { return }; self.navigationController?.pushViewController(AnkiOptionsController(state: self.state, deckID: self.deckID), animated: true) })

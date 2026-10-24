@@ -150,6 +150,9 @@ extension AnkiCollection {
     public func prepareReview(deckID: String, model: String = "sm56", precision: String = "cards_int4_notes_int8") throws -> AnkiValue {
         try selectDeck(deckID)
         let configs = try backend.call("DeckConfig", "GetDeckConfigsForUpdate", ["did": .string(deckID)])
+        if !configs["cardStateCustomizer"].string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            throw CollectionError.invalidInput("This collection uses a custom scheduling script that this build cannot run yet. Reviews are paused to preserve your scheduling.")
+        }
         let rwkv = configs["allConfig"].array.contains { $0["config"]["config"]["rwkvReviewEnabled"].bool || $0["config"]["config"]["rwkvReviewInstantOrderEnabled"].bool }
         var predictions: AnkiValue = .object([:])
         if rwkv {
@@ -166,10 +169,13 @@ extension AnkiCollection {
         var cards = queue["cards"].array
         for index in cards.indices {
             let card = cards[index]["card"], prediction = predictions[card["id"].string]
-            guard prediction != .null else { continue }
             let deck = try backend.call("Decks", "GetDeck", ["did": card["deckId"]])
             let actualDeck = deck["normal"] == .null ? try backend.call("Decks", "GetDeck", ["did": card["originalDeckId"]]) : deck
             let config = try backend.call("DeckConfig", "GetDeckConfig", ["dcid": actualDeck["normal"]["configId"]])["config"]
+            guard prediction != .null else {
+                if config["rwkvReviewEnabled"].bool { throw CollectionError.invalidInput("RWKV Curve cannot prepare this card’s review context yet. Review it on desktop to preserve your scheduling.") }
+                continue
+            }
             var metadata = prediction; metadata["curveEnabled"] = .bool(config["rwkvReviewEnabled"].bool)
             cards[index]["rwkvPrediction"] = metadata
             if config["rwkvReviewEnabled"].bool {

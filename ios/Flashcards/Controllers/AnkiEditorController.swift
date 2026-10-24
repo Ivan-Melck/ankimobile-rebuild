@@ -3,6 +3,7 @@ import FlashcardsCore
 
 final class AnkiEditorController: UITableViewController {
     let state: AnkiAppState
+    var onSave: (() -> Void)?
     private var note: AnkiValue?
     private var deckID: String
     private var typeID: String = ""
@@ -19,7 +20,12 @@ final class AnkiEditorController: UITableViewController {
             try loadType(); if let note { fields = note["fields"].array.map(\.string); tags = note["tags"].array.map(\.string).joined(separator: " ") }
         } catch { showError(error) }
     }
-    private func loadType() throws { let type = try state.collection.notetype(typeID); fieldNames = type["fields"].array.map { $0["name"].string }; fields = Array(repeating: "", count: fieldNames.count); tableView.reloadData() }
+    private func loadType() throws {
+        let previous = fields, byName = Dictionary(uniqueKeysWithValues: zip(fieldNames, fields))
+        let type = try state.collection.notetype(typeID); fieldNames = type["fields"].array.map { $0["name"].string }
+        fields = fieldNames.enumerated().map { index, name in byName[name] ?? (previous.indices.contains(index) ? previous[index] : "") }
+        tableView.reloadData()
+    }
     override func numberOfSections(in tableView: UITableView) -> Int { 3 }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 1 ? fields.count : section == 0 ? 2 : 1 }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { [nil, "Fields", "Tags"][section] }
@@ -58,7 +64,7 @@ final class AnkiEditorController: UITableViewController {
         do {
             if var note { note["fields"] = .array(fields.map(AnkiValue.string)); note["tags"] = .array(tags.split(whereSeparator: \.isWhitespace).map { .string(String($0)) }); try state.collection.updateNote(note) }
             else { _ = try state.collection.addNote(notetypeID: typeID, deckID: deckID, fields: fields, tags: tags.split(whereSeparator: \.isWhitespace).map(String.init)) }
-            dismiss(animated: true)
+            dismiss(animated: true, completion: onSave)
         } catch { showError(error) }
     }
     deinit { NotificationCenter.default.removeObserver(self) }
@@ -92,7 +98,7 @@ final class AnkiBrowserController: UITableViewController, UISearchResultsUpdatin
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt p: IndexPath) {
         guard !isEditing else { return }; tableView.deselectRow(at: p, animated: true)
-        do { let card = try state.collection.getCard(ids[p.row]); let note = try state.collection.getNote(card["noteId"].string); present(UINavigationController(rootViewController: AnkiEditorController(state: state, note: note, deckID: card["deckId"].string)), animated: true) } catch { showError(error) }
+        do { let card = try state.collection.getCard(ids[p.row]); let note = try state.collection.getNote(card["noteId"].string); let editor = AnkiEditorController(state: state, note: note, deckID: card["deckId"].string); editor.onSave = { [weak self] in self?.reload() }; present(UINavigationController(rootViewController: editor), animated: true) } catch { showError(error) }
     }
     private var selected: [AnkiValue] { (tableView.indexPathsForSelectedRows ?? []).map { .string(ids[$0.row]) } }
     @objc private func suspendSelected() { do { try state.collection.backend.call("Scheduler", "BuryOrSuspendCards", ["cardIds": .array(selected), "mode": .number(0)]); reload() } catch { showError(error) } }

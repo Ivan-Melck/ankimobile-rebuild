@@ -59,7 +59,7 @@ fn history_input(v: &Value) -> ReviewInput {
         enforce_grade_order: true,
     }
 }
-fn query_input(v: &Value) -> ReviewInput {
+fn query_input(v: &Value, latest: Option<&Value>) -> ReviewInput {
     let kind = match v["currentNormalStateKind"].as_str().unwrap_or("") {
         "new" => 0,
         "learning" => 1,
@@ -67,11 +67,22 @@ fn query_input(v: &Value) -> ReviewInput {
         "relearning" => 3,
         _ => int(&v["cardType"]),
     };
-    let kind = if v["currentStateKind"] == "filtered" {
+    let mut kind = if v["currentStateKind"] == "filtered" {
         4
     } else {
         kind
     };
+    // Match the fork's synthetic same-day review context. A card may be
+    // stored as Review after learning while the neural event is Filtered.
+    if kind == 2 {
+        if let Some(previous) = latest.filter(|p| int(&p["dayOffset"]) == int(&v["dayOffset"])) {
+            kind = match (int(&previous["reviewKind"]), int(&previous["ease"])) {
+                (1, 1) | (2, 1 | 2) => 3,
+                (0..=2, _) => 4,
+                _ => kind,
+            };
+        }
+    }
     let retention = v["targetRetention"].as_f64().unwrap_or(0.9) as f32;
     ReviewInput {
         card_id: int(&v["cardId"]),
@@ -96,14 +107,45 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
     let precision = request["precision"]
         .as_str()
         .unwrap_or("cards_int4_notes_int8");
-    let rows = rpc(
+    let mut rows = rpc(
         backend,
         "RwkvReviewInputRowsForDeckReviewQueue",
         json!({"deckId":deck,"includeNewCards":true}),
     )?;
+    let mut retention_requests = vec![];
+    for (index, row) in rows["rows"]
+        .as_array_mut()
+        .into_iter()
+        .flatten()
+        .enumerate()
+    {
+        let preset = rpc(
+            backend,
+            "GetFsrsPresetForCard",
+            json!({"cid":row["cardId"]}),
+        )?;
+        if let Some(retention) = preset["desiredRetention"].as_f64() {
+            row["targetRetention"] = json!(retention);
+        }
+        retention_requests.push(json!({"requestIndex":index,"cardId":row["cardId"],"desiredRetention":row["targetRetention"]}));
+    }
+    let targets = rpc(
+        backend,
+        "FsrsDesiredRetentionForIntervalsBatch",
+        json!({"items":retention_requests}),
+    )?;
     let mut ids = serde_json::Map::new();
-    let card_ids = call_backend(backend, "BackendSearchService", "SearchCards", json!({"search":""}))?;
-    let presets = rpc(backend, "GetFsrsPresetIdsForCards", json!({"cids":card_ids["ids"]}))?;
+    let card_ids = call_backend(
+        backend,
+        "BackendSearchService",
+        "SearchCards",
+        json!({"search":""}),
+    )?;
+    let presets = rpc(
+        backend,
+        "GetFsrsPresetIdsForCards",
+        json!({"cids":card_ids["ids"]}),
+    )?;
     for row in presets["items"].as_array().into_iter().flatten() {
         if let Some(id) = row["presetId"].as_str() {
             ids.insert(id.into(), json!(stable_preset_id(id).to_string()));
@@ -155,8 +197,29 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
     }
     let mut scores = vec![];
     let mut predictions = serde_json::Map::new();
-    for row in rows["rows"].as_array().into_iter().flatten() {
-        let input = query_input(row);
+    let targets_by_index: HashMap<i64, &Value> = targets["items"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|t| (int(&t["requestIndex"]), t))
+        .collect();
+    for (index, row) in rows["rows"].as_array().into_iter().flatten().enumerate() {
+        let latest = previous
+            .get(&int(&row["cardId"]))
+            .map(|i| &history_rows[*i]);
+        let mut input = query_input(row, latest);
+        let target = targets_by_index.get(&(index as i64)).copied();
+        if let Some(target) = target {
+            if target["dynamicDesiredRetentionEnabled"] == true {
+                if let Some(retentions) = target["dynamicDesiredRetentions"]
+                    .as_array()
+                    .filter(|r| r.len() == 4)
+                {
+                    input.target_retentions =
+                        std::array::from_fn(|i| retentions[i].as_f64().map(|r| r as f32));
+                }
+            }
+        }
         let state = runtime.warm_up_state(&input);
         let output = runtime
             .review(
@@ -174,8 +237,16 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
             .get(&input.card_id)
             .map(|i| history_rows.len() - i - 1)
             .unwrap_or(history_rows.len());
-        scores.push(json!({"cardId":input.card_id.to_string(),"retrievability":output.retrievability,"interveningReviews":intervening,"targetRetention":row["targetRetention"]}));
-        let review_kind = match input.card_type.unwrap_or(2) { 0 | 1 => 0, 2 => 1, 3 => 2, _ => 3 };
+        let target_retention = target
+            .and_then(|t| t["intervalTargetDesiredRetention"].as_f64())
+            .unwrap_or_else(|| row["targetRetention"].as_f64().unwrap_or(0.9));
+        scores.push(json!({"cardId":input.card_id.to_string(),"retrievability":output.retrievability,"interveningReviews":intervening,"targetRetention":target_retention}));
+        let review_kind = match input.card_type.unwrap_or(2) {
+            0 | 1 => 0,
+            2 => 1,
+            3 => 2,
+            _ => 3,
+        };
         predictions.insert(input.card_id.to_string(),json!({"retrievability":output.retrievability,"intervals":output.intervals,"s90s":output.s90s,"reviewKind":review_kind}));
     }
     rpc(

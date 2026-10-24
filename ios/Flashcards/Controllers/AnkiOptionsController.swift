@@ -37,7 +37,7 @@ final class AnkiOptionsController: PlanningTableController {
     private func label(_ name: String) -> String {
         if name == "rwkvReviewEnabled" { return "Use RWKV Curve for due dates" }
         if name == "rwkvReviewInstantOrderEnabled" { return "Use RWKV Instant review order" }
-        return name.replacingOccurrences(of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression).replacingOccurrences(of: "rwkv", with: "RWKV").replacingOccurrences(of: "fsrs", with: "FSRS").capitalized
+        return name.replacingOccurrences(of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression).capitalized.replacingOccurrences(of: "Rwkv", with: "RWKV").replacingOccurrences(of: "Fsrs", with: "FSRS")
     }
     override func tableView(_ tableView: UITableView, cellForRowAt p: IndexPath) -> UITableViewCell {
         if p.section == 0 {
