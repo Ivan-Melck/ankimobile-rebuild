@@ -20,6 +20,8 @@ final class AnkiCardWebView: WKWebView, WKNavigationDelegate, WKScriptMessageHan
     private var pendingLoad = false
     private var loadRetries = 0
     private var loadWatchdog: DispatchWorkItem?
+    private var loadGeneration = 0
+    private var expectedNavigation: WKNavigation?
     init(media: URL) {
         self.media = media
         let config = WKWebViewConfiguration()
@@ -76,16 +78,21 @@ final class AnkiCardWebView: WKWebView, WKNavigationDelegate, WKScriptMessageHan
     }
     private func loadDocument() {
         guard window != nil, let expected = documentURL else { pendingLoad = true; return }
-        pendingLoad = false; loadWatchdog?.cancel()
-        loadFileURL(expected, allowingReadAccessTo: workspace)
-        let check = DispatchWorkItem { [weak self] in self?.validateDocument(expected) }
+        pendingLoad = false; documentReady = false; loadWatchdog?.cancel(); onLoading?()
+        loadGeneration += 1; let generation = loadGeneration
+        expectedNavigation = loadFileURL(expected, allowingReadAccessTo: workspace)
+        let check = DispatchWorkItem { [weak self] in
+            guard let self, self.loadGeneration == generation else { return }
+            self.validateDocument(expected)
+        }
         loadWatchdog = check; DispatchQueue.main.asyncAfter(deadline: .now() + 8, execute: check)
     }
     private func validateDocument(_ expected: URL) {
         guard documentURL == expected, !documentReady else { return }
         guard url?.lastPathComponent == expected.lastPathComponent else { recoverDocument(expected); return }
+        let generation = loadGeneration
         evaluateJavaScript("Boolean(document.getElementById('qa'))") { [weak self] value, _ in
-            guard let self, self.documentURL == expected, !self.documentReady else { return }
+            guard let self, self.documentURL == expected, self.loadGeneration == generation, !self.documentReady else { return }
             if value as? Bool == true {
                 self.documentReady = true; self.loadWatchdog?.cancel(); self.onReady?()
             } else { self.recoverDocument(expected) }
@@ -131,15 +138,15 @@ final class AnkiCardWebView: WKWebView, WKNavigationDelegate, WKScriptMessageHan
             audio = try? AVAudioPlayer(contentsOf: file); audio?.play()
         }
     }
-    func detach() { documentURL = nil; pendingLoad = false; loadWatchdog?.cancel(); stopLoading(); configuration.userContentController.removeScriptMessageHandler(forName: "anki"); audio?.stop(); try? FileManager.default.removeItem(at: workspace) }
+    func detach() { documentURL = nil; expectedNavigation = nil; pendingLoad = false; loadWatchdog?.cancel(); stopLoading(); configuration.userContentController.removeScriptMessageHandler(forName: "anki"); audio?.stop(); try? FileManager.default.removeItem(at: workspace) }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        if let expected = documentURL, url?.lastPathComponent == expected.lastPathComponent { validateDocument(expected) }
+        if navigation === expectedNavigation, let expected = documentURL, url?.lastPathComponent == expected.lastPathComponent { validateDocument(expected) }
     }
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         if let expected = documentURL { recoverDocument(expected) }
     }
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) { report(error) }
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { report(error) }
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) { if navigation === expectedNavigation { report(error) } }
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) { if navigation === expectedNavigation { report(error) } }
     private func report(_ error: Error) {
         let error = error as NSError
         if error.code == NSURLErrorCancelled || (error.domain == "WebKitErrorDomain" && error.code == 102) { return }
