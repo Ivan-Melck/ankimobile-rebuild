@@ -1,6 +1,6 @@
 // Adapted from the fork’s published-vector checks. AGPL-3.0-or-later.
-use std::io::Read;
 use super::*;
+use std::io::Read;
 #[derive(serde::Deserialize)]
 struct VectorRow {
     features: Vec<f32>,
@@ -81,9 +81,12 @@ pub fn verify_all_published_vectors() {
         ("sm40", &include_bytes!("testdata/sm40-vectors.json.gz")[..]),
         ("sm36", &include_bytes!("testdata/sm36-vectors.json.gz")[..]),
         ("sm55", &include_bytes!("testdata/sm55-vectors.json.gz")[..]),
-        ("sm56", &include_bytes!("testdata/sm56-vectors.json.gz")[..])
+        ("sm56", &include_bytes!("testdata/sm56-vectors.json.gz")[..]),
     ] {
-        let mut data=Vec::new(); flate2::read::GzDecoder::new(bytes).read_to_end(&mut data).unwrap();
+        let mut data = Vec::new();
+        flate2::read::GzDecoder::new(bytes)
+            .read_to_end(&mut data)
+            .unwrap();
         check_published_vectors(name, &data);
     }
 }

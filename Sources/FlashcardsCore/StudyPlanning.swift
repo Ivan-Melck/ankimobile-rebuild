@@ -95,7 +95,7 @@ struct NativeRequest: Encodable {
     var retention: Double; var max_interval: Int; var parameters: [Double]
     var history: [NativeEvent]; var cards: [NativeEvent]; var card: NativeEvent?
     var days: Int; var new_limit: Int; var review_limit: Int; var include_same_day: Bool
-    var grade_order: Bool; var time_series: Bool
+    var grade_order: Bool; var time_series: Bool; var scope_deck: Int64?
 }
 enum NativeScheduling {
     private struct Failure: Decodable { var error: String }
@@ -125,6 +125,7 @@ enum NativeScheduling {
         let history = doc.reviewLogs.filter { $0.reviewedAt <= now }.sorted { $0.reviewedAt < $1.reviewedAt }.compactMap { log -> NativeEvent? in
             guard var e = cardMap[log.cardID].map({ event($0, time: log.reviewedAt) }) else { return nil }
             e.deck = numericID(log.deckID); e.rating = log.rating.rawValue; e.seconds = log.durationSeconds
+            e.interval = log.previousIntervalDays; e.reps = 0; e.lapses = 0
             e.state = log.previousState == .new ? 0 : log.previousState == .learning ? 1 : log.previousState == .review ? 2 : 3
             return e
         }
@@ -136,7 +137,7 @@ enum NativeScheduling {
             cards: doc.cards.filter { (deckID == nil || $0.deckID == deckID) && !$0.suspended && !$0.isBuried(at: now) }.map { event($0, time: now) },
             card: card.map { event($0, time: now) }, days: days, new_limit: deck?.options.newCardsPerDay ?? 20,
             review_limit: deck?.options.reviewCardsPerDay ?? 200, include_same_day: options.includeSameDayInAnalysis,
-            grade_order: options.enforceGradeOrder, time_series: timeSeries)
+            grade_order: options.enforceGradeOrder, time_series: timeSeries, scope_deck: deckID.map(numericID))
     }
 }
 
@@ -181,15 +182,13 @@ extension CollectionStore {
     public func evaluate(deckID: UUID, timeSeries: Bool = false, now: Date = Date()) throws -> CalibrationResult {
         let doc = readDocument { $0 }; let options = Self.options(in: doc, deckID: deckID)
         guard options.engine != .legacy else { throw CollectionError.invalidInput("Choose a memory model first.") }
-        var request = try NativeScheduling.request(op: "evaluate", doc: doc, options: options, deckID: deckID, now: now, timeSeries: timeSeries)
-        request.history = request.history.filter { $0.deck == NativeScheduling.numericID(deckID) }
+        let request = try NativeScheduling.request(op: "evaluate", doc: doc, options: options, deckID: deckID, now: now, timeSeries: timeSeries)
         return try NativeScheduling.call(request, as: CalibrationResult.self)
     }
     public func optimize(deckID: UUID, now: Date = Date()) throws -> [Double] {
         let doc = readDocument { $0 }; let options = Self.options(in: doc, deckID: deckID)
         guard options.engine == .fsrs6 || options.engine == .fsrs7 else { throw CollectionError.invalidInput("Parameter optimization is available for FSRS. RWKV uses its trained model weights.") }
-        var request = try NativeScheduling.request(op: "optimize", doc: doc, options: options, deckID: deckID, now: now)
-        request.history = request.history.filter { $0.deck == NativeScheduling.numericID(deckID) }
+        let request = try NativeScheduling.request(op: "optimize", doc: doc, options: options, deckID: deckID, now: now)
         struct Result: Decodable { var parameters: [Double] }
         return try NativeScheduling.call(request, as: Result.self).parameters
     }
@@ -202,7 +201,7 @@ extension CollectionStore {
         let prediction = try NativeScheduling.call(request, as: MemoryPrediction.self)
         guard prediction.intervals.count == 4, let interval = prediction.intervals[rating.rawValue - 1], interval.isFinite, interval >= 0 else { throw CollectionError.invalidInput("The model returned an invalid interval.") }
         var days = min(Double(options.maximumInterval), max(1 / 86400, interval))
-        if !options.allowSameDay || (card.state == .new && options.skipLearning) || (rating == .again && options.skipRelearning) { days = max(1, days.rounded()) }
+        if !options.allowSameDay || ((card.state == .new || card.state == .learning) && options.skipLearning) || ((rating == .again || card.state == .relearning) && options.skipRelearning) { days = max(1, days.rounded()) }
         var next = card; next.intervalDays = days; next.due = now.addingTimeInterval(days * 86400)
         next.reps += 1; if rating == .again && card.state != .new { next.lapses += 1 }
         next.state = days < 1 ? (rating == .again && card.state != .new ? .relearning : .learning) : .review

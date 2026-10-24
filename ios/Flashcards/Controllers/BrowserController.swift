@@ -14,7 +14,7 @@ final class BrowserController: UITableViewController, UISearchResultsUpdating {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "card")
         search.searchResultsUpdater = self
         search.obscuresBackgroundDuringPresentation = false
-        search.searchBar.placeholder = "Search notes, deck:, tag:, is:"
+        search.searchBar.placeholder = "Search notes, tag:, prop:ivl>10"
         search.searchBar.accessibilityIdentifier = "browserSearch"
         navigationItem.searchController = search
         navigationItem.hidesSearchBarWhenScrolling = false
@@ -76,7 +76,12 @@ final class BrowserController: UITableViewController, UISearchResultsUpdating {
             })
             self.present(alert, animated: true)
         }
-        let configuration = UISwipeActionsConfiguration(actions: [delete, suspend])
+        let insights = UIContextualAction(style: .normal, title: "Insights") { [weak self] _, _, done in
+            guard let self else { done(false); return }
+            self.navigationController?.pushViewController(CardInsightsController(model: self.model, cardID: card.id), animated: true); done(true)
+        }
+        insights.backgroundColor = PlanningUI.accent
+        let configuration = UISwipeActionsConfiguration(actions: [delete, suspend, insights])
         configuration.performsFirstActionWithFullSwipe = false
         return configuration
     }

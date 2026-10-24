@@ -57,7 +57,8 @@ public final class CollectionStore {
     @discardableResult public func createDeck(name: String) throws -> Deck {
         try mutate { doc in
             let name = try Self.validDeckName(name, in: doc)
-            let deck = Deck(name: name)
+            var options = DeckOptions(); options.scheduling = SchedulingOptions()
+            let deck = Deck(name: name, options: options)
             doc.decks.append(deck)
             return deck
         }
@@ -336,7 +337,8 @@ public final class CollectionStore {
                     if let a = scores[$0.id], let b = scores[$1.id], a != b { return a < b }
                 case .intervalAscending: if $0.card.intervalDays != $1.card.intervalDays { return $0.card.intervalDays < $1.card.intervalDays }
                 case .intervalDescending: if $0.card.intervalDays != $1.card.intervalDays { return $0.card.intervalDays > $1.card.intervalDays }
-                case .due: break
+                case .due:
+                    if options.engine == .rwkvInstant, let a = scores[$0.id], let b = scores[$1.id], a != b { return a < b }
                 }
                 return cardOrder($0.card, $1.card)
             }.prefix(max(0, deck.options.reviewCardsPerDay - reviewed))
@@ -408,11 +410,17 @@ public final class CollectionStore {
         try require(doc.format == "flashcards-collection" && doc.schemaVersion == CollectionDocument.currentVersion, "Invalid collection format.")
         try require(Set(doc.decks.map(\.id)).count == doc.decks.count && Set(doc.notes.map(\.id)).count == doc.notes.count && Set(doc.cards.map(\.id)).count == doc.cards.count && Set(doc.reviewLogs.map(\.id)).count == doc.reviewLogs.count, "Collection contains duplicate identifiers.")
         let deckIDs = Set(doc.decks.map(\.id)), noteIDs = Set(doc.notes.map(\.id))
+        try require(Set(doc.cards.map { NativeScheduling.numericID($0.id) }).count == doc.cards.count &&
+                    Set(doc.notes.map { NativeScheduling.numericID($0.id) }).count == doc.notes.count &&
+                    Set(doc.decks.map { NativeScheduling.numericID($0.id) }).count == doc.decks.count, "Collection identifiers collide in the native scheduling engine.")
+        let presets = doc.schedulingPresets ?? []
+        try require(Set(presets.map(\.id)).count == presets.count && presets.allSatisfy { !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }, "Invalid scheduling presets.")
         try require(deckIDs.contains(doc.defaultDeckID), "The collection is missing its default deck.")
         var names = Set<String>()
         for preset in doc.schedulingPresets ?? [] { try preset.options.validate() }
         for deck in doc.decks {
             try deck.options.scheduling?.validate()
+            try require(Set((deck.options.rules ?? []).map(\.id)).count == (deck.options.rules ?? []).count, "Duplicate scheduling rules.")
             for rule in deck.options.rules ?? [] {
                 try require(!rule.query.isEmpty && rule.retention.isFinite && (0.7...0.99).contains(rule.retention), "Invalid scheduling rule.")
                 try require(rule.presetID == nil || (doc.schedulingPresets ?? []).contains(where: { $0.id == rule.presetID }), "Missing rule preset.")

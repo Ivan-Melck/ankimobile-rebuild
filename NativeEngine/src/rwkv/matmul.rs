@@ -5,7 +5,7 @@ const CBLAS_ROW_MAJOR: i32 = 101;
 const CBLAS_NO_TRANS: i32 = 111;
 
 #[link(name = "Accelerate", kind = "framework")]
-extern "C" {
+unsafe extern "C" {
     fn cblas_sgemm(
         order: i32,
         trans_a: i32,
@@ -69,7 +69,7 @@ pub(super) fn matrix_times_matrix(
 }
 
 #[link(name = "Accelerate", kind = "framework")]
-extern "C" {
+unsafe extern "C" {
     fn vvexpf(y: *mut f32, x: *const f32, n: *const i32);
     fn vvtanhf(y: *mut f32, x: *const f32, n: *const i32);
 }

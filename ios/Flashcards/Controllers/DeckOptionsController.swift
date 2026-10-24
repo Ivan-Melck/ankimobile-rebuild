@@ -26,16 +26,21 @@ final class DeckOptionsController: UITableViewController {
     }
     override func numberOfSections(in tableView: UITableView) -> Int { Group.allCases.count }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch Group(rawValue: section)! {
+        let group = Group(rawValue: section)!
+        if settings.engine == .legacy && [.learning, .ordering, .analysis, .rules].contains(group) { return 0 }
+        if settings.engine == .legacy && group == .scheduling { return 1 }
+        switch group {
         case .identity: return 2; case .scheduling: return 3; case .limits: return 2; case .learning: return 4
         case .ordering: return 4; case .neural: return settings.engine.isRWKV ? 3 : 0; case .analysis: return 2
         case .rules: return 1; case .delete: return 1
         }
     }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        ["Deck & preset", "Memory & retention", "Daily limits", "Learning", "Order & repeat spacing", settings.engine.isRWKV ? "RWKV advanced" : nil, "Understand your model", "Conditional scheduling", nil][section]
+        guard self.tableView(tableView, numberOfRowsInSection: section) > 0 else { return nil }
+        return ["Deck & preset", "Memory & retention", "Daily limits", "Learning", "Order & repeat spacing", settings.engine.isRWKV ? "RWKV advanced" : nil, "Understand your model", "Conditional scheduling", nil][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        guard self.tableView(tableView, numberOfRowsInSection: section) > 0 else { return nil }
         switch Group(rawValue: section)! {
         case .identity: return "Presets share settings across decks. Editing a setting creates a local override; saving a preset updates its linked decks."
         case .scheduling: return settings.engine.detail + " Changing models uses your recorded history; it does not rewrite existing due dates."
