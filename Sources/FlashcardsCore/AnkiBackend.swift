@@ -204,6 +204,7 @@ extension AnkiCollection {
             let actualDeck = deck["normal"] == .null ? try backend.call("Decks", "GetDeck", ["did": card["originalDeckId"]]) : deck
             let config = try backend.call("DeckConfig", "GetDeckConfig", ["dcid": actualDeck["normal"]["configId"]])["config"]
             cards[index]["reviewConfig"] = config
+            cards[index]["effectivePreset"] = try backend.call("Scheduler", "GetFsrsPresetForCard", ["cid": card["id"]])
             if cards[index]["states"]["current"]["filtered"] != .null && (config["rwkvReviewEnabled"].bool || config["rwkvReviewInstantOrderEnabled"].bool) {
                 throw CollectionError.invalidInput("RWKV reviews in filtered decks are not supported in this build yet. Review this deck on desktop to preserve your scheduling.")
             }
@@ -219,7 +220,7 @@ extension AnkiCollection {
                 cards[index]["states"] = try backend.call("Scheduler", "SchedulingStatesWithIntervals", input)
             }
         }
-        queue["cards"] = .array(cards); return queue
+        queue["cards"] = .array(cards); queue["fsrsEnabled"] = configs["fsrs"]; return queue
     }
 }
 

@@ -77,4 +77,17 @@ final class AnkiNativeUITests: XCTestCase {
         XCTAssertTrue(app.webViews.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Answer masks ready")).firstMatch.waitForExistence(timeout: 15))
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); attachment.name = "18-Image-Occlusion"; attachment.lifetime = .keepAlways; add(attachment)
     }
+    func testRWKVInstantRunsOnIOSWithFSRS6FallbackAndPersistsReview() {
+        let app = XCUIApplication(); app.launchArguments = ["--anki-testing", "--reset-test-collection", "--anki-rwkv-fixture"]; app.launch()
+        XCTAssertTrue(app.tables["ankiDeckList"].waitForExistence(timeout: 15)); app.tables["ankiDeckList"].cells.firstMatch.tap()
+        XCTAssertTrue(app.buttons["ankiShowAnswer"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["ankiReviewStatus"].label.contains("RWKV Instant · FSRS-6"))
+        app.buttons["ankiShowAnswer"].tap(); app.buttons["ankiRate.4"].tap()
+        XCTAssertTrue(app.buttons["ankiStudyDone"].waitForExistence(timeout: 15) || app.buttons["ankiShowAnswer"].exists)
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); attachment.name = "19-RWKV-Instant"; attachment.lifetime = .keepAlways; add(attachment)
+        app.terminate(); app.launchArguments = ["--anki-testing"]; app.launch()
+        app.navigationBars.buttons["Browse"].tap()
+        XCTAssertTrue(app.tables["ankiBrowser"].cells.firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tables["ankiBrowser"].cells.firstMatch.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "1 reviews")).firstMatch.exists)
+    }
 }

@@ -26,7 +26,7 @@ final class AnkiReviewerController: UIViewController, AVSpeechSynthesizerDelegat
         speech.delegate = self
         web.onSpeak = { [weak self] question, index in self?.activeSpeech = nil; self?.speech.stopSpeaking(at: .immediate); self?.speak(question: question, index: index) }
         controls.axis = .horizontal; controls.distribution = .fillEqually; controls.spacing = 8
-        counts.font = .preferredFont(forTextStyle: .caption1); counts.textColor = .secondaryLabel; counts.textAlignment = .center
+        counts.font = .preferredFont(forTextStyle: .caption1); counts.textColor = .secondaryLabel; counts.textAlignment = .center; counts.numberOfLines = 0; counts.accessibilityIdentifier = "ankiReviewStatus"
         let stack = UIStackView(arrangedSubviews: [web, counts, controls]); stack.axis = .vertical; stack.spacing = 10; stack.translatesAutoresizingMaskIntoConstraints = false; view.addSubview(stack)
         NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor), stack.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor), stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor), stack.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor, constant: -10)])
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis.circle"), style: .plain, target: self, action: #selector(actions)); navigationItem.rightBarButtonItem?.accessibilityLabel = "Study Actions"
@@ -54,6 +54,15 @@ final class AnkiReviewerController: UIViewController, AVSpeechSynthesizerDelegat
                     self.typed = typed
                     self.queued = queue["cards"].array.first
                     self.counts.text = "\(queue["newCount"].int) new   ·   \(queue["learningCount"].int) learning   ·   \(queue["reviewCount"].int) review"
+                    if let card = self.queued {
+                        let config = card["reviewConfig"]
+                        let version = ["FOUR": "4", "FIVE": "5", "SIX": "6", "SEVEN": "7"][card["effectivePreset"]["fsrsVersion"].string] ?? "7"
+                        let fallback = queue["fsrsEnabled"].bool ? "FSRS-\(version)" : "SM-2"
+                        let curve = card["rwkvPrediction"]["curveEnabled"].bool
+                        let instant = card["rwkvPrediction"] != .null && config["rwkvReviewInstantOrderEnabled"].bool
+                        let mode = curve ? (instant ? "RWKV Curve · Instant order" : "RWKV Curve") : (instant ? "RWKV Instant · \(fallback)" : fallback)
+                        self.counts.text = mode + "\n" + (self.counts.text ?? "")
+                    }
                     self.started = Date()
                     if let rendering { self.questionTags = rendering.questionAVTags; self.answerTags = rendering.answerAVTags; self.question = typed?.questionHTML(rendering.question) ?? rendering.question; self.answer = rendering.answer; self.css = rendering.css; self.render(self.question, questionSide: true); self.controls.addArrangedSubview(Theme.button("Show Answer", identifier: "ankiShowAnswer", action: UIAction { [weak self] _ in self?.reveal() })) }
                     else { self.web.show("<h2>You’re done for now</h2><p>Come back when your next cards are due.</p>", css: "", dark: self.traitCollection.userInterfaceStyle == .dark); self.controls.addArrangedSubview(Theme.button("Decks", identifier: "ankiStudyDone", action: UIAction { [weak self] _ in self?.navigationController?.popViewController(animated: true) })) }

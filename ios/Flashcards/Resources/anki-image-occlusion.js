@@ -9,7 +9,7 @@
   var setupI18n = async () => {
   };
 
-  // Vendor/anki/ts/routes/image-occlusion/canvas-scale.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/canvas-scale.ts
   function optimumPixelSizeForCanvas(imageSize, containerSize) {
     let { width, height } = imageSize;
     const pixelScale = window.devicePixelRatio;
@@ -36,7 +36,7 @@
     throw new Error("Desktop canvas conversion is unavailable in the iOS reviewer.");
   } });
 
-  // tools/reviewer/node_modules/svelte/src/internal/shared/utils.js
+  // node_modules/svelte/src/internal/shared/utils.js
   var index_of = Array.prototype.indexOf;
   var includes = Array.prototype.includes;
   var object_prototype = Object.prototype;
@@ -44,7 +44,7 @@
   var noop = () => {
   };
 
-  // tools/reviewer/node_modules/svelte/src/internal/client/constants.js
+  // node_modules/svelte/src/internal/client/constants.js
   var DERIVED = 1 << 1;
   var EFFECT = 1 << 2;
   var RENDER_EFFECT = 1 << 3;
@@ -80,12 +80,12 @@
     !!globalThis.document?.contentType && /* @__PURE__ */ globalThis.document.contentType.includes("xml")
   );
 
-  // tools/reviewer/node_modules/svelte/src/internal/client/reactivity/equality.js
+  // node_modules/svelte/src/internal/client/reactivity/equality.js
   function safe_not_equal(a, b) {
     return a != a ? b == b : a !== b || a !== null && typeof a === "object" || typeof a === "function";
   }
 
-  // tools/reviewer/node_modules/svelte/src/constants.js
+  // node_modules/svelte/src/constants.js
   var EACH_INDEX_REACTIVE = 1 << 1;
   var EACH_IS_CONTROLLED = 1 << 2;
   var EACH_IS_ANIMATED = 1 << 3;
@@ -102,10 +102,10 @@
   var ELEMENT_PRESERVE_ATTRIBUTE_CASE = 1 << 1;
   var ELEMENT_IS_INPUT = 1 << 2;
 
-  // tools/reviewer/node_modules/svelte/src/internal/client/reactivity/status.js
+  // node_modules/svelte/src/internal/client/reactivity/status.js
   var STATUS_MASK = ~(DIRTY | MAYBE_DIRTY | CLEAN);
 
-  // tools/reviewer/node_modules/svelte/src/store/shared/index.js
+  // node_modules/svelte/src/store/shared/index.js
   var subscriber_queue = [];
   function writable(value, start = noop) {
     let stop = null;
@@ -155,10 +155,10 @@
     return { set: set2, update: update2, subscribe };
   }
 
-  // tools/reviewer/node_modules/svelte/src/internal/client/dom/blocks/boundary.js
+  // node_modules/svelte/src/internal/client/dom/blocks/boundary.js
   var flags = EFFECT_TRANSPARENT | EFFECT_PRESERVED;
 
-  // Vendor/anki/ts/routes/image-occlusion/store.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/store.ts
   var notesDataStore = writable({ id: "", title: "", divValue: "", textareaValue: "" }[0]);
   var tagsWritable = writable([""]);
   var ioMaskEditorVisible = writable(true);
@@ -168,7 +168,7 @@
   var textEditingState = writable(false);
   var saveNeededStore = writable(false);
 
-  // Vendor/anki/ts/routes/image-occlusion/tools/lib.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/tools/lib.ts
   var SHAPE_MASK_COLOR = "#ffeba2";
   var TEXT_BACKGROUND_COLOR = "#ffffff";
   var TEXT_FONT_FAMILY = "Arial";
@@ -176,7 +176,7 @@
   var TEXT_FONT_SIZE = 40;
   var TEXT_COLOR = "#000000";
 
-  // Vendor/anki/ts/routes/image-occlusion/shapes/lib.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/shapes/lib.ts
   function floatToDisplay(number) {
     if (Number.isNaN(number) || number == 0) {
       return ".0000";
@@ -193,7 +193,7 @@
     return Number.isNaN(angleSteps) ? null : angleSteps / ANGLE_STEPS * 360;
   }
 
-  // Vendor/anki/ts/routes/image-occlusion/shapes/position.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/shapes/position.ts
   function xToNormalized(size, x) {
     return x / size.width;
   }
@@ -207,7 +207,7 @@
     return Math.round(y * size.height);
   }
 
-  // Vendor/anki/ts/routes/image-occlusion/shapes/base.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/shapes/base.ts
   var Shape = class _Shape {
     constructor({ left = 0, top = 0, angle = 0, fill = SHAPE_MASK_COLOR, occludeInactive, ordinal = void 0 } = {}) {
       this.left = left;
@@ -258,7 +258,7 @@
     }
   };
 
-  // Vendor/anki/ts/routes/image-occlusion/shapes/ellipse.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/shapes/ellipse.ts
   var Ellipse = class _Ellipse extends Shape {
     constructor({ rx = 0, ry = 0, ...rest } = {}) {
       super(rest);
@@ -296,7 +296,7 @@
     }
   };
 
-  // Vendor/anki/ts/routes/image-occlusion/shapes/polygon.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/shapes/polygon.ts
   var Polygon = class _Polygon extends Shape {
     constructor({ points = [], ...rest } = {}) {
       super(rest);
@@ -352,7 +352,7 @@
     }
   };
 
-  // Vendor/anki/ts/routes/image-occlusion/shapes/rectangle.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/shapes/rectangle.ts
   var Rectangle = class _Rectangle extends Shape {
     constructor({ width = 0, height = 0, ...rest } = {}) {
       super(rest);
@@ -390,7 +390,7 @@
     }
   };
 
-  // Vendor/anki/ts/routes/image-occlusion/shapes/text.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/shapes/text.ts
   var Text2 = class _Text extends Shape {
     constructor({
       text = "",
@@ -446,7 +446,7 @@
     }
   };
 
-  // Vendor/anki/ts/routes/image-occlusion/shapes/from-cloze.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/shapes/from-cloze.ts
   function extractShapesFromRenderedClozes(selector) {
     return Array.from(document.querySelectorAll(selector)).flatMap((cloze) => {
       if (cloze instanceof HTMLDivElement) {
@@ -527,7 +527,7 @@
     }
   }
 
-  // Vendor/anki/ts/routes/image-occlusion/review.ts
+  // ../../Vendor/anki/ts/routes/image-occlusion/review.ts
   var imageOcclusionAPI = {
     setup: setupImageOcclusion,
     drawShape,
@@ -542,7 +542,17 @@
     window.addEventListener("load", () => {
       window.addEventListener("resize", () => setupImageOcclusion(setupOptions));
     });
-    window.requestAnimationFrame(() => setupImageOcclusionInner(setupOptions));
+    let drawn = false;
+    const draw = () => {
+      if (drawn) return;
+      drawn = true;
+      void setupImageOcclusionInner(setupOptions);
+    };
+    const fallback = window.setTimeout(draw, 250);
+    window.requestAnimationFrame(() => {
+      window.clearTimeout(fallback);
+      draw();
+    });
   }
   async function waitForImage() {
     const image = document.querySelector(
@@ -906,7 +916,7 @@
     drawShapes(canvas, setupOptions?.onWillDrawShapes, setupOptions?.onDidDrawShapes);
   };
 
-  // anki-ios-image-occlusion.ts
+  // ../../anki-ios-image-occlusion.ts
   window.anki = window.anki || {};
   window.anki.imageOcclusion = imageOcclusionAPI;
   window.anki.setupImageCloze = imageOcclusionAPI.setup;

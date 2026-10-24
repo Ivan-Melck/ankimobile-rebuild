@@ -100,6 +100,30 @@ final class AnkiCompatibilityTests: XCTestCase {
         XCTAssertTrue(rendered.answer.contains("cloze-highlight"))
         try col.close()
     }
+    func testCustomizedImageOcclusionTemplateRetainsImageAndCallback() throws {
+        let col = try AnkiCollection(directory: directory())
+        try col.backend.call("ImageOcclusion", "AddImageOcclusionNotetype")
+        let named = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Image Occlusion" })
+        var type = try col.notetype(named["id"].string), templates = type["templates"].array
+        let callback = #"anki.imageOcclusion.setup({onDidDrawShapes:(data,ctx)=>{const c=ctx.canvas;const alpha=ctx.getImageData(Math.floor(c.width*.35),Math.floor(c.height*.35),1,1).data[3];document.getElementById('io-status').append(data.activeShapes.length?(alpha?'Mask ready':'Mask missing'):'Answer masks ready')}});"#
+        for i in templates.indices {
+            var template = templates[i], config = template["config"]
+            for key in ["qFormat", "aFormat"] { config[key] = .string(config[key].string.replacingOccurrences(of: "anki.imageOcclusion.setup();", with: callback)) }
+            template["config"] = config; templates[i] = template
+        }
+        type["templates"] = .array(templates); try col.backend.call("Notetypes", "UpdateNotetype", type.object)
+        let indexes = try col.backend.call("ImageOcclusion", "GetImageOcclusionFields", ["notetypeId": named["id"]])["fields"]
+        var fields = Array(repeating: "", count: type["fields"].array.count)
+        fields[indexes["occlusions"].int] = "{{c1::image-occlusion:rect:left=.2:top=.2:width=.5:height=.5}}"
+        fields[indexes["image"].int] = "<img src=\"fixture.svg\">"
+        fields[indexes["header"].int] = "<div id=\"io-status\"></div>"
+        let nid = try col.addNote(notetypeID: named["id"].string, deckID: "1", fields: fields)
+        let rendered = try col.render(cardID: XCTUnwrap(col.search("nid:\(nid)").first))
+        XCTAssertTrue(rendered.question.contains("fixture.svg"))
+        XCTAssertTrue(rendered.question.contains("id=\"io-status\""))
+        XCTAssertTrue(rendered.question.contains("onDidDrawShapes"))
+        try col.close()
+    }
     private func filteredDeck(_ collection: AnkiCollection, noteID: String) throws -> String {
         var filtered = try collection.backend.call("Decks", "GetOrCreateFilteredDeck", ["did": .string("0")])
         filtered["name"] = .string("Synthetic filtered deck")

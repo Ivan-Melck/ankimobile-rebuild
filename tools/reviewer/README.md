@@ -17,6 +17,10 @@ English missing-image message. Desktop Fabric conversion methods throw an
 explicit unsupported-editor error; no Fabric serialization/editor code ships.
 Image occlusion authoring remains a separate native UI task.
 
+The setup adapter retains upstream's animation-frame drawing and adds a 250 ms
+one-shot fallback for embedded views where frame callbacks stall. It changes
+only image-occlusion setup timing; template JavaScript keeps the system API.
+
 The bundled MathJax SVG component supports offline typesetting. Its TeX settings
 follow the fork's reviewer (including `noerrors` and `mathtools`); cached LaTeX
 images use filenames produced by the shared backend. Generating missing TeX

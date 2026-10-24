@@ -16,6 +16,16 @@ final class AnkiAppState {
         collection = try AnkiCollection(directory: profilesURL.appendingPathComponent(name, isDirectory: true))
         if testing && ProcessInfo.processInfo.arguments.contains("--anki-media-fixture") { try seedMediaFixture() }
         if testing && ProcessInfo.processInfo.arguments.contains("--anki-occlusion-fixture") { try seedOcclusionFixture() }
+        if testing && ProcessInfo.processInfo.arguments.contains("--anki-rwkv-fixture") { try seedRWKVFixture() }
+    }
+    private func seedRWKVFixture() throws {
+        let settings = try collection.deckConfiguration("1")
+        var config = settings.selected, algorithm = config["config"], all = settings.all
+        algorithm["rwkvReviewEnabled"] = .bool(false); algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true); algorithm["fsrsVersion"] = .string("SIX")
+        config["config"] = algorithm; all["fsrs"] = .bool(true)
+        try collection.saveDeckConfiguration(config, deckID: "1", original: all)
+        guard let basic = try collection.notetypes().first(where: { $0["name"].string == "Basic" }) else { throw CollectionError.invalidInput("Missing RWKV fixture type.") }
+        _ = try collection.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["RWKV Instant on iOS", "Real Anki review history"])
     }
     private func seedMediaFixture(addNote: Bool = true) throws {
         try Data("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"80\" height=\"80\"><rect width=\"80\" height=\"80\" rx=\"16\" fill=\"#5856d6\"/></svg>".utf8).write(to: collection.mediaURL.appendingPathComponent("fixture.svg"))

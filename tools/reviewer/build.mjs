@@ -27,6 +27,24 @@ await build({
     outfile: path.join(output, "anki-image-occlusion.js"),
     banner: { js: "// Anki image-occlusion reviewer: Ankitects Pty Ltd and contributors. AGPL-3.0-or-later.\n// Source: Vendor/anki at 96af4ca9d214e71743b1186fd2ceab1a7e7e3f32; adapter: tools/reviewer/build.mjs." },
     plugins: [{ name: "native-reviewer-platform", setup(plugin) {
+        // Embedded/headless WebKit can delay animation frames indefinitely.
+        // Keep upstream's frame timing, with a one-shot timer fallback after
+        // image loading. Do not change animation timing in user templates.
+        plugin.onLoad({filter: /image-occlusion\/review\.ts$/}, async args => {
+            const source = await readFile(args.path, "utf8");
+            const frame = "window.requestAnimationFrame(() => setupImageOcclusionInner(setupOptions));";
+            if (!source.includes(frame)) throw new Error("Upstream image-occlusion setup changed; review the WebKit timing adapter.");
+            return {contents: source.replace(frame, `
+                let drawn = false;
+                const draw = () => {
+                    if (drawn) return;
+                    drawn = true;
+                    void setupImageOcclusionInner(setupOptions);
+                };
+                const fallback = window.setTimeout(draw, 250);
+                window.requestAnimationFrame(() => { window.clearTimeout(fallback); draw(); });
+            `), loader: "ts", resolveDir: path.dirname(args.path)};
+        });
         // Only the missing-image error uses desktop translation transport.
         // Normal occlusion parsing/drawing is the unmodified upstream source.
         plugin.onResolve({filter: /^(@generated\/ftl|@tslib\/i18n)$/}, args => ({path: args.path, namespace: "mobile-i18n"}));
