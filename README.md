@@ -45,8 +45,8 @@ A private collection test passed a round trip of 8,478 cards, 6,402 notes, 10 no
 | What to change | Location |
 | --- | --- |
 | Native screens and navigation | `ios/Flashcards/Controllers/` |
-| Card font, spacing, colors | `ios/Flashcards/Resources/reviewer.css` |
-| Theme and preferences | `ios/Flashcards/Support/AppModel.swift` |
+| Card appearance | Existing Anki note-type CSS/templates; viewer defaults in `ios/Flashcards/Support/AnkiCardWebView.swift` |
+| Native appearance, profiles and preferences | `ios/Flashcards/Support/AnkiAppState.swift` |
 | Real Anki backend bridge and collection operations | `Sources/FlashcardsCore/AnkiBackend.swift`, `NativeEngine/src/full_backend.rs` |
 | Offline math / image-occlusion assets | `tools/reviewer/`, `ios/Flashcards/Resources/anki-*.js` |
 | Typed-answer presentation and comparison | `Sources/FlashcardsCore/AnkiTypedAnswer.swift` |
@@ -68,6 +68,10 @@ cargo test --release --locked --manifest-path NativeEngine/Cargo.toml --features
 See [architecture](docs/architecture.md), [compatibility](docs/compatibility.md), [analysis and fidelity](docs/analysis.md), [verification](docs/verification.md), and [local REA workflow](docs/reproduce-analysis.md). No supplied IPA, original executable, extracted assets, recovered proprietary code or personal collection data is published.
 
 ## Simulator captures
+
+The native collection path includes real Anki deck options, typed answers and image-occlusion viewing. Captures use public synthetic fixtures; see [verification](docs/verification.md) for source revisions and limits.
+
+<img src="docs/screenshots/native-options.png" width="230" alt="Native Anki deck options"> <img src="docs/screenshots/native-typed-answer.png" width="230" alt="Native Anki typed-answer review"> <img src="docs/screenshots/native-review.png" width="230" alt="Native Anki card review">
 
 The fork integration adds these native planning screens. [Verification and test results](docs/verification.md) include the exact tested revision and remaining runtime limits.
 
