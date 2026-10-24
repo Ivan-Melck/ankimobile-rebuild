@@ -36,3 +36,29 @@ This file's address table comes from the supplemental reader, not a fabricated R
 REA's dispatch inventory is explicitly **partial**: at its 20,000-name bound it found 118 class symbols and 225 Swift symbol records, while declaring runtime ivar layouts, native relative pointers and Swift dispatch tables unsupported in that inventory. Its symbol-only dispatch result did not decode method implementations. The supplemental byte reader supplied method addresses; explicit Ghidra analysis then recognized the selected method entries. The 150/626 byte-reader counts and 118/225 symbol counts describe different coverage and must not be conflated.
 
 No original pseudocode or extracted code is published here. Decompiler output contains unresolved Swift register conventions and warning annotations; high-level conclusions above are restricted to observable calls and metadata.
+
+## Editor and browser pass
+
+A second focused pass follows editor, browser, and web-message methods into their Swift helpers. Local evidence is under `analysis/evidence/native-editor-browser/`. The supplemental class inventory shows 44 bridge methods on `EditViewController` and 20 on `SearchViewController`.
+
+| Flow | Bridge entry | Helper followed | Observation |
+| --- | --- | --- | --- |
+| Save note | `0x1001588a4` | `0x100158650` | Runs `anki.removeFocus()` through WKWebView's JavaScript completion API before the save completion path |
+| Editor layout | `0x100151f30` | `0x100151448` | Builds a horizontally scrolling native editing toolbar and registers keyboard observers |
+| New cloze number | `0x100155a60` | `0x1001551f4` | Constructs an `anki.wrap` call containing cloze delimiters and a number, then evaluates it in the editor web view |
+| Change deck | `0x10016b0b8` | Async task boundary | Dispatches onto MainActor; selection internals remain outside this trace |
+| Select browser row | `0x1000de480` | `0x1000e1588` | In selection mode, toggles the card ID in the selected set and reloads that row; otherwise schedules a per-card task |
+| Browser row display | `0x1000dea00` | `0x1000e1a4c` | Reuses a custom SearchCell or creates one using database state, then asynchronously populates it by card ID |
+| Submit browser search | `0x1000ded78` | `0x1000e1cd8` | Resigns the search field's first responder and schedules a search task |
+| Browser actions | `0x1000dde18` | `0x1000ddb98` | Checks the selected-item count, takes an alert path for an empty selection, otherwise schedules the action task |
+| Editor web message | `0x1002d70ac` | `0x1002da430` | Reads the WKScriptMessage body as a string, decodes UTF-8 JSON into a dictionary, and forwards it to the editor |
+
+Selected evidence identifiers: save helper `ev_5172da2d54b370358a894271dea93dabd4ad7e29fe7060e74864b2dfcc343d70`; browser selection `ev_7cb181f5ce28821c455699dec4deb6353c10c340ddfbe28f04e99a58c6d9adfc`; JSON message handling `ev_9c07600eade2760599b94e62de96c70161b7825ad485b223cfc6d431419866af`.
+
+This establishes that the original editor is a rich web-backed editing surface controlled by native actions. The rebuild's UITextView fields accept authored HTML and support the implemented note types, but do not reproduce that rich toolbar, DOM selection, media insertion, or JSON bridge. The current browser likewise implements ordinary single-card editing/search and swipe actions, while the original has a separate bulk-selection mode. These are specific behavioral gaps, not cosmetic differences.
+
+The save completion at `0x10015876c` schedules another MainActor task. The storage commit itself was not traced through all async continuations, so the native save trace must not be treated as evidence of the original app's transaction guarantees.
+
+The editor dictionary dispatcher at `0x10016190c` reads keys including `scheme` and `args`, and REA's literal recovery identifies messages and state keys for fields, tags, focus, bold/italic/underline, HTML mode, note type and deck changes. This corroborates the native-toolbar/web-editor bridge described above. Literal recovery also emits duplicates and some implausible register-derived strings; those were excluded from the report.
+
+Across both passes, **35 selected functions** were analyzed. The expanded local evidence bundle contains **38 records**, including the overview/dispatch records and the earlier results loaded from the snapshot. The saved `anki-expanded.snapshot` retains the analyzed results for continuation. The 35-function count includes short bridges and helpers; it is not 35 complete end-to-end features.

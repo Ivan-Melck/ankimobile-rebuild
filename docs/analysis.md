@@ -40,7 +40,7 @@ No original runtime screenshots were available. The original device IPA cannot b
 - Compare every screen and gesture with the original on a physical iOS device; validate iPad/landscape/dynamic type/accessibility layouts.
 - Integrate Anki-compatible collection storage, package/media import/export, production scheduler/FSRS, and custom note templates.
 - Implement AnkiWeb synchronization, profile switching, automatic backups, media playback/recording, image occlusion and typed answers.
-- Implement deck hierarchy/collapse/aggregate limits, filtered/custom study, card flags UI, browser bulk actions, richer stats, scratchpad, auto advance, gestures and gamepad shortcuts.
+- Implement deck hierarchy/collapse/aggregate limits, filtered/custom study, card flags UI, browser bulk actions, the rich web editor toolbar, richer stats, scratchpad, auto advance, customizable tap actions and gamepad shortcuts.
 - Match all preferences, localization, error recovery, and background/rollover behavior.
 
 These are material gaps. The current app should not be treated as a drop-in replacement for an existing Anki collection.

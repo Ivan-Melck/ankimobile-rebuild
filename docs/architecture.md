@@ -8,6 +8,8 @@ The Swift package contains notes, cards, decks, review logs, scheduling, renderi
 
 Collection mutations copy the current document, apply changes, validate all references and values, save atomically, then publish the new in-memory document. Failed validation or I/O leaves the live collection unchanged. A recursive lock serializes access within one instance. Use one store instance for a file; separate processes writing that same file are unsupported.
 
+This repository is designed for small local collections. It validates and rewrites the whole JSON document for every edit, and currently builds search/queue projections in memory. Large-collection performance and multi-process access are not validated; an Anki-compatible database-backed repository is a separate parity task.
+
 Backups use a versioned `flashcards-collection` JSON document. Dates use Foundation's native Codable Date representation (seconds since 2001-01-01), preserving Double precision without epoch conversion. References, unique identifiers, supported schemas, finite intervals, note templates, and undo records are checked during restore. Review history survives note/deck deletion for historical statistics; those logs may reference deleted objects. Any ordinary collection edit clears the single-answer undo record.
 
 Queues prioritize due learning/relearning, then due review, then new cards. Daily limits apply per deck using the local calendar's midnight rollover. Learning cards bypass daily limits. There is no learning-ahead window, hierarchical limit aggregation, sibling burying, or Anki's 4am rollover.

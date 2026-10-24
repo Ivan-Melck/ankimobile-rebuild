@@ -1,7 +1,7 @@
 import UIKit
 import FlashcardsCore
 
-final class ReviewerController: UIViewController {
+final class ReviewerController: UIViewController, UIGestureRecognizerDelegate {
     private let model: AppModel
     private let deck: Deck
     private var current: StudyCard?
@@ -36,7 +36,8 @@ final class ReviewerController: UIViewController {
         tools.heightAnchor.constraint(equalToConstant: 44).isActive = true
         let tap = UITapGestureRecognizer(target: self, action: #selector(cardTapped))
         tap.cancelsTouchesInView = false
-        web.addGestureRecognizer(tap)
+        tap.delegate = self
+        web.scrollView.addGestureRecognizer(tap)
         counts.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
         counts.textAlignment = .center
         counts.accessibilityIdentifier = "studyCounts"
@@ -119,6 +120,10 @@ final class ReviewerController: UIViewController {
         if seconds < 3600 { return "\(max(1, Int((seconds / 60).rounded())))m" }
         if seconds < 86400 { return "\(Int((seconds / 3600).rounded()))h" }
         return "\(Int((seconds / 86400).rounded()))d"
+    }
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // WebKit installs its own tap recognizers; let the card action observe that same tap.
+        true
     }
     @objc private func cardTapped() { if !revealed { showAnswer() } }
     @objc private func addNote() {
