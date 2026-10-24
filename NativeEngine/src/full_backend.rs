@@ -90,7 +90,16 @@ fn execute(call: Call) -> Result<Value, String> {
                 .ok_or("Backend handle is closed")?;
             let name = call.service.as_deref().ok_or("Missing service")?;
             let method_name = call.method.as_deref().ok_or("Missing method")?;
-            call_backend(&backend, name, method_name, call.input)
+            let result = call_backend(&backend, name, method_name, call.input.clone())?;
+            if name == "BackendSchedulerService" && method_name == "AnswerCard" {
+                super::collection_rwkv::record_answer(call.handle, &backend, &call.input);
+            }
+            if name == "BackendCollectionService"
+                && ["OpenCollection", "CloseCollection"].contains(&method_name)
+            {
+                super::collection_rwkv::release(call.handle);
+            }
+            Ok(result)
         }
         "rwkv_prepare" => {
             let backend = BACKENDS

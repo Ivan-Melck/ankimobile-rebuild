@@ -9,22 +9,33 @@
 /* Begin PBXBuildFile section */
 		01DAC0C29BDD4F71F2D6C8A1 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526D21E8518978816626AFDE /* AppModel.swift */; };
 		0763C6E00EE3445C15C86AEB /* SchedulingPresetsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E238140F3BA661A20147E1 /* SchedulingPresetsController.swift */; };
+		0D5201AC080246B3760D253B /* AnkiDecksController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787930ED15208FF9D1D37B9A /* AnkiDecksController.swift */; };
 		1A3707BF1CD47533B1C519BA /* SettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A8611FFDB64B4117FCCC53 /* SettingsController.swift */; };
+		1C1E52B21C0BD91194C5A47F /* anki-mathjax-svg.js in Resources */ = {isa = PBXBuildFile; fileRef = 3437E533918BD2A5700A61EA /* anki-mathjax-svg.js */; };
 		20329DEAA364C41517C37B81 /* CalibrationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3178C5536306043BEFBDD1C3 /* CalibrationController.swift */; };
 		3405F165002006C1B44BB896 /* DecksController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7BB7D06B60176B537A514CD /* DecksController.swift */; };
 		3CA3A12540843982D9A4DC48 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289D6B37A6FA519E10198F2C /* AppDelegate.swift */; };
+		49D5826B4D1039246270DDD2 /* anki-image-occlusion.js in Resources */ = {isa = PBXBuildFile; fileRef = FEFFB5E7A53F3A6667D6E15E /* anki-image-occlusion.js */; };
 		4ECA90AFC34080E633B576E7 /* BrowserController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE629A24F83FBD2DE842FA62 /* BrowserController.swift */; };
 		56082544C3F4D7B9E75FE37B /* ReviewerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17C8CEC1882E5A8880DED03 /* ReviewerController.swift */; };
+		6EBD6CC191E7E4EE40544C2B /* AnkiNativeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D93A9757000177336ACFE0A /* AnkiNativeUITests.swift */; };
+		6FD84E64B4380B29BF9E4381 /* reviewer-asset-licenses.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1411FD98F7E01D77CDA914A3 /* reviewer-asset-licenses.txt */; };
+		70391DD8DEDBF890BA66A5C4 /* AnkiOptionsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC0B80B04FDEE5E90E8FBA5 /* AnkiOptionsController.swift */; };
+		7A6A33CE3F9216DDB769DB47 /* AnkiAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CD65F988D99AEB283F8A18 /* AnkiAppState.swift */; };
 		800C15CC7F092A0B89530523 /* CardWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51524D4A9F6706DA1D20373E /* CardWebView.swift */; };
 		87543B3FCE0B1CA880F556CA /* StudyPlanController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53205887C3BFF068F50AB999 /* StudyPlanController.swift */; };
+		969D6C831746CA4B740AA019 /* AnkiSyncController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0520560658B298C959EB98AB /* AnkiSyncController.swift */; };
+		B0D4730A5A56B77BFC130D15 /* AnkiReviewerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9457CD4D6AD1494713FC6679 /* AnkiReviewerController.swift */; };
 		B38C1AFA8016162762C7CF16 /* PlanningUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE4EA4A6F9542DAB641E604 /* PlanningUI.swift */; };
 		BBFBE898C41CC4D089E2D26E /* FlashcardsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E40CD64F095A8BA4D1644DE /* FlashcardsUITests.swift */; };
 		DA905E6BBFD009FC90031EAE /* reviewer.css in Resources */ = {isa = PBXBuildFile; fileRef = 73848A39B0FAAC3F60F6B42C /* reviewer.css */; };
 		E099DD204F4EAA76F90FABFD /* ToolsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2D52A102763134822FC397 /* ToolsController.swift */; };
 		E745553F7536D3E4E036D8B7 /* DeckOptionsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54B2C5D70E40AC839CA59370 /* DeckOptionsController.swift */; };
+		EA79BCC5A96EDA19D69445CA /* AnkiEditorController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55CF2F02F99CA810CE8D1E40 /* AnkiEditorController.swift */; };
 		EAF6EBF27A4ABC187CA6F186 /* FlashcardsCore in Frameworks */ = {isa = PBXBuildFile; productRef = CF4118A14ADCEB2587D2C0BB /* FlashcardsCore */; };
 		EC043DB26AC8499011701DD0 /* EditorController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F50DF7D6F58681C64333AB /* EditorController.swift */; };
 		EC451E7E028250FECC0AEB9A /* StatisticsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77E4F679022D512ADC4293E /* StatisticsController.swift */; };
+		F5A6DFBB7D90ABB14F4E4FAA /* AnkiCardWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51B7270FF816B1500D0B07A3 /* AnkiCardWebView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,19 +49,29 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0520560658B298C959EB98AB /* AnkiSyncController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiSyncController.swift; sourceTree = "<group>"; };
 		070938971B6DA36EDC8B8668 /* Flashcards.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Flashcards.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1411FD98F7E01D77CDA914A3 /* reviewer-asset-licenses.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "reviewer-asset-licenses.txt"; sourceTree = "<group>"; };
 		16F50DF7D6F58681C64333AB /* EditorController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorController.swift; sourceTree = "<group>"; };
 		1A2D52A102763134822FC397 /* ToolsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsController.swift; sourceTree = "<group>"; };
 		289D6B37A6FA519E10198F2C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3178C5536306043BEFBDD1C3 /* CalibrationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationController.swift; sourceTree = "<group>"; };
+		33CD65F988D99AEB283F8A18 /* AnkiAppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiAppState.swift; sourceTree = "<group>"; };
+		3437E533918BD2A5700A61EA /* anki-mathjax-svg.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "anki-mathjax-svg.js"; sourceTree = "<group>"; };
 		3E40CD64F095A8BA4D1644DE /* FlashcardsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardsUITests.swift; sourceTree = "<group>"; };
 		51524D4A9F6706DA1D20373E /* CardWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardWebView.swift; sourceTree = "<group>"; };
+		51B7270FF816B1500D0B07A3 /* AnkiCardWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiCardWebView.swift; sourceTree = "<group>"; };
 		526D21E8518978816626AFDE /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		53205887C3BFF068F50AB999 /* StudyPlanController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyPlanController.swift; sourceTree = "<group>"; };
 		54B2C5D70E40AC839CA59370 /* DeckOptionsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckOptionsController.swift; sourceTree = "<group>"; };
+		55CF2F02F99CA810CE8D1E40 /* AnkiEditorController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiEditorController.swift; sourceTree = "<group>"; };
+		6D93A9757000177336ACFE0A /* AnkiNativeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiNativeUITests.swift; sourceTree = "<group>"; };
 		73848A39B0FAAC3F60F6B42C /* reviewer.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = reviewer.css; sourceTree = "<group>"; };
 		76A8611FFDB64B4117FCCC53 /* SettingsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsController.swift; sourceTree = "<group>"; };
+		787930ED15208FF9D1D37B9A /* AnkiDecksController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiDecksController.swift; sourceTree = "<group>"; };
 		83E238140F3BA661A20147E1 /* SchedulingPresetsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulingPresetsController.swift; sourceTree = "<group>"; };
+		8DC0B80B04FDEE5E90E8FBA5 /* AnkiOptionsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiOptionsController.swift; sourceTree = "<group>"; };
+		9457CD4D6AD1494713FC6679 /* AnkiReviewerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnkiReviewerController.swift; sourceTree = "<group>"; };
 		99A90CBE9CD5DEC355E72942 /* ankimobile-rebuild */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ankimobile-rebuild"; path = .; sourceTree = SOURCE_ROOT; };
 		A77E4F679022D512ADC4293E /* StatisticsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsController.swift; sourceTree = "<group>"; };
 		A7BB7D06B60176B537A514CD /* DecksController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecksController.swift; sourceTree = "<group>"; };
@@ -58,6 +79,7 @@
 		DBE4EA4A6F9542DAB641E604 /* PlanningUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanningUI.swift; sourceTree = "<group>"; };
 		DE629A24F83FBD2DE842FA62 /* BrowserController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserController.swift; sourceTree = "<group>"; };
 		F760E860CA556E45A8229982 /* FlashcardsUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FlashcardsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FEFFB5E7A53F3A6667D6E15E /* anki-image-occlusion.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "anki-image-occlusion.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +97,8 @@
 		354B44A78F05580F9D227C0E /* Support */ = {
 			isa = PBXGroup;
 			children = (
+				33CD65F988D99AEB283F8A18 /* AnkiAppState.swift */,
+				51B7270FF816B1500D0B07A3 /* AnkiCardWebView.swift */,
 				526D21E8518978816626AFDE /* AppModel.swift */,
 				51524D4A9F6706DA1D20373E /* CardWebView.swift */,
 			);
@@ -84,6 +108,11 @@
 		454AE54BB437E51F3F4076A5 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				787930ED15208FF9D1D37B9A /* AnkiDecksController.swift */,
+				55CF2F02F99CA810CE8D1E40 /* AnkiEditorController.swift */,
+				8DC0B80B04FDEE5E90E8FBA5 /* AnkiOptionsController.swift */,
+				9457CD4D6AD1494713FC6679 /* AnkiReviewerController.swift */,
+				0520560658B298C959EB98AB /* AnkiSyncController.swift */,
 				DE629A24F83FBD2DE842FA62 /* BrowserController.swift */,
 				3178C5536306043BEFBDD1C3 /* CalibrationController.swift */,
 				54B2C5D70E40AC839CA59370 /* DeckOptionsController.swift */,
@@ -111,6 +140,9 @@
 		579A92DD41CC7CCDD6299B3B /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				FEFFB5E7A53F3A6667D6E15E /* anki-image-occlusion.js */,
+				3437E533918BD2A5700A61EA /* anki-mathjax-svg.js */,
+				1411FD98F7E01D77CDA914A3 /* reviewer-asset-licenses.txt */,
 				73848A39B0FAAC3F60F6B42C /* reviewer.css */,
 			);
 			name = Resources;
@@ -151,6 +183,7 @@
 		E0659CC025722761CA54A138 /* FlashcardsUITests */ = {
 			isa = PBXGroup;
 			children = (
+				6D93A9757000177336ACFE0A /* AnkiNativeUITests.swift */,
 				3E40CD64F095A8BA4D1644DE /* FlashcardsUITests.swift */,
 			);
 			name = FlashcardsUITests;
@@ -245,6 +278,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49D5826B4D1039246270DDD2 /* anki-image-occlusion.js in Resources */,
+				1C1E52B21C0BD91194C5A47F /* anki-mathjax-svg.js in Resources */,
+				6FD84E64B4380B29BF9E4381 /* reviewer-asset-licenses.txt in Resources */,
 				DA905E6BBFD009FC90031EAE /* reviewer.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -278,6 +314,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6EBD6CC191E7E4EE40544C2B /* AnkiNativeUITests.swift in Sources */,
 				BBFBE898C41CC4D089E2D26E /* FlashcardsUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -286,6 +323,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7A6A33CE3F9216DDB769DB47 /* AnkiAppState.swift in Sources */,
+				F5A6DFBB7D90ABB14F4E4FAA /* AnkiCardWebView.swift in Sources */,
+				0D5201AC080246B3760D253B /* AnkiDecksController.swift in Sources */,
+				EA79BCC5A96EDA19D69445CA /* AnkiEditorController.swift in Sources */,
+				70391DD8DEDBF890BA66A5C4 /* AnkiOptionsController.swift in Sources */,
+				B0D4730A5A56B77BFC130D15 /* AnkiReviewerController.swift in Sources */,
+				969D6C831746CA4B740AA019 /* AnkiSyncController.swift in Sources */,
 				3CA3A12540843982D9A4DC48 /* AppDelegate.swift in Sources */,
 				01DAC0C29BDD4F71F2D6C8A1 /* AppModel.swift in Sources */,
 				4ECA90AFC34080E633B576E7 /* BrowserController.swift in Sources */,

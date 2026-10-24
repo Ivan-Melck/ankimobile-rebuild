@@ -21,6 +21,10 @@ struct Cached {
 }
 static RUNTIMES: LazyLock<Mutex<HashMap<u64, Cached>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
+// Reviewer-local state, like the desktop's _rwkv_synthetic_answer_states.
+// Exact revlog IDs prevent a recent undone answer matching an older row.
+static SYNTHETIC_ANSWERS: LazyLock<Mutex<HashMap<u64, HashMap<i64, i64>>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 fn rpc(backend: &Backend, method: &str, input: Value) -> Result<Value, String> {
     call_backend(backend, "BackendSchedulerService", method, input)
 }
@@ -59,7 +63,7 @@ fn history_input(v: &Value) -> ReviewInput {
         enforce_grade_order: true,
     }
 }
-fn query_input(v: &Value, latest: Option<&Value>) -> ReviewInput {
+fn query_input(v: &Value, latest: Option<&Value>, synthetic_answer: Option<i64>) -> ReviewInput {
     let kind = match v["currentNormalStateKind"].as_str().unwrap_or("") {
         "new" => 0,
         "learning" => 1,
@@ -79,6 +83,7 @@ fn query_input(v: &Value, latest: Option<&Value>) -> ReviewInput {
             kind = match (int(&previous["reviewKind"]), int(&previous["ease"])) {
                 (1, 1) | (2, 1 | 2) => 3,
                 (0..=2, _) => 4,
+                (3, _) if synthetic_answer == Some(int(&previous["reviewId"])) => 4,
                 _ => kind,
             };
         }
@@ -217,7 +222,7 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
     for (index, row) in rows["rows"].as_array().into_iter().flatten().enumerate() {
         // Desktop candidate scoring uses the backend row's ordinary state.
         // Synthetic same-day state is applied only to the displayed card.
-        let mut input = query_input(row, None);
+        let mut input = query_input(row, None, None);
         let target = targets_by_index.get(&(index as i64)).copied();
         let intervening = previous
             .get(&input.card_id)
@@ -251,7 +256,13 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
             .find(|r| &r["cardId"] == cid)
         {
             let latest = previous.get(&int(cid)).map(|i| &history_rows[*i]);
-            let mut input = query_input(row, latest);
+            let synthetic_answer = SYNTHETIC_ANSWERS.lock().ok().and_then(|answers| {
+                answers
+                    .get(&handle)
+                    .and_then(|cards| cards.get(&int(cid)))
+                    .copied()
+            });
+            let mut input = query_input(row, latest, synthetic_answer);
             let preset = rpc(backend, "GetFsrsPresetForCard", json!({"cid":cid}))?;
             let retention = preset["desiredRetention"].as_f64().unwrap_or(0.9) as f32;
             input.target_retentions = [Some(retention); 4];
@@ -279,5 +290,32 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
 pub fn release(handle: u64) {
     if let Ok(mut runtimes) = RUNTIMES.lock() {
         runtimes.remove(&handle);
+    }
+    if let Ok(mut answers) = SYNTHETIC_ANSWERS.lock() {
+        answers.remove(&handle);
+    }
+}
+
+pub fn record_answer(handle: u64, backend: &Backend, input: &Value) {
+    let cid = int(&input["cardId"]);
+    let synthetic =
+        input["rwkvReviewKind"] == 3 && !input["currentState"]["normal"]["review"].is_null();
+    let latest = if synthetic {
+        let query = json!({"kind":"query","sql":"select max(id) from revlog where cid = ?","args":[cid],"first_row_only":true});
+        backend
+            .run_db_command_bytes(&serde_json::to_vec(&query).unwrap())
+            .ok()
+            .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+            .and_then(|row| optional(&row[0][0]))
+    } else {
+        None
+    };
+    if let Ok(mut answers) = SYNTHETIC_ANSWERS.lock() {
+        let cards = answers.entry(handle).or_default();
+        if let Some(id) = latest {
+            cards.insert(cid, id);
+        } else {
+            cards.remove(&cid);
+        }
     }
 }

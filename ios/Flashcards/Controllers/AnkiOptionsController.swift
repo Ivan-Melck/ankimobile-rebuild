@@ -51,7 +51,13 @@ final class AnkiOptionsController: PlanningTableController {
             if p.row >= 3 { let setting = globalToggles[p.row - 3]; return PlanningUI.toggle(setting.0, value: original[setting.1].bool, id: "ankiGlobal.\(setting.1)") { [weak self] value in guard let self else { return }; var source = self.original; source[setting.1] = .bool(value); self.save(self.selected, source: source) } }
             if p.row == 0 { return PlanningUI.toggle("Enable FSRS / RWKV scheduling", value: original["fsrs"].bool, id: "ankiFSRS") { [weak self] value in guard let self else { return }; var source = self.original; source["fsrs"] = .bool(value); self.save(self.selected, source: source) } }
             if p.row == 1 { return PlanningUI.cell("RWKV model", value: modelNames[state.rwkvModel] ?? state.rwkvModel, disclosure: true) }
-            return PlanningUI.cell("RWKV state precision", value: precisionNames[state.rwkvPrecision] ?? state.rwkvPrecision, disclosure: true)
+            let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
+            cell.textLabel?.text = "RWKV state precision"; cell.textLabel?.numberOfLines = 0
+            cell.detailTextLabel?.text = precisionNames[state.rwkvPrecision] ?? state.rwkvPrecision
+            cell.detailTextLabel?.textColor = .secondaryLabel; cell.detailTextLabel?.font = .preferredFont(forTextStyle: .subheadline)
+            cell.detailTextLabel?.numberOfLines = 0; cell.detailTextLabel?.adjustsFontForContentSizeCategory = true
+            cell.accessoryType = .disclosureIndicator
+            return cell
         }
         let field = groups[p.section - 1][p.row], key = field["name"].string, value = selected["config"][key]
         if desktopRefreshSettings.contains(key) {
