@@ -7,19 +7,33 @@ license = "AGPL-3.0-or-later"
 crate-type = ["staticlib", "rlib"]
 test = false
 [features]
-default = ["rwkv-sm40"]
+default = ["rwkv-sm40", "full-backend"]
+full-backend = ["dep:anki", "dep:anki_proto", "dep:prost", "dep:prost-reflect", "dep:anki_proto_gen"]
 rwkv-sm40 = []
 validation = ["dep:flate2"]
+validation-server = ["full-backend"]
 [dependencies]
 fsrs = { git = "https://github.com/open-spaced-repetition/fsrs-rs", rev = "0a5737406a0c5c7a5259b144738cbe4a0b649d76" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rayon = "1.12"
-rusqlite = { version = "0.37", features = ["bundled", "blob"] }
+rusqlite = { version = "0.36", features = ["bundled", "blob"] }
 half = "2"
 blake3 = "1"
 tracing = "0.1"
 tempfile = "3"
 flate2 = { version = "1", optional = true }
+anki = { path = "../Vendor/anki/rslib", features = ["rustls"], optional = true }
+anki_proto = { path = "../Vendor/anki/rslib/proto", optional = true }
+prost = { version = "0.13", optional = true }
+prost-reflect = { version = "0.14.7", features = ["serde"], optional = true }
+anki_proto_gen = { path = "../Vendor/anki/rslib/proto_gen", optional = true }
+[build-dependencies]
+anki_proto = { path = "../Vendor/anki/rslib/proto" }
 [profile.release]
 opt-level = 3
+
+[[bin]]
+name = "anki-compat-sync-server"
+path = "src/bin/compat_sync_server.rs"
+required-features = ["validation-server"]

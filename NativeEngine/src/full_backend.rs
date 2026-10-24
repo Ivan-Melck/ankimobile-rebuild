@@ -1,0 +1,59 @@
+//! Stable JSON/Protobuf bridge to every service in the pinned Anki backend.
+//! Integer IDs use protobuf JSON's decimal strings, retaining all 64 bits.
+use anki::backend::{Backend, init_backend};
+use prost::Message;
+use prost_reflect::{DescriptorPool, DynamicMessage};
+use serde::Deserialize;
+use serde_json::{Value, json};
+use std::{collections::HashMap, ffi::{CStr, CString, c_char}, sync::{LazyLock, Mutex, atomic::{AtomicU64, Ordering}}};
+static DESCRIPTORS: LazyLock<DescriptorPool> = LazyLock::new(|| DescriptorPool::decode(&include_bytes!(concat!(env!("OUT_DIR"), "/anki-descriptors.bin"))[..]).unwrap());
+static BACKENDS: LazyLock<Mutex<HashMap<u64, Backend>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+static NEXT_HANDLE: AtomicU64 = AtomicU64::new(1);
+#[derive(Deserialize)]
+struct Call { op: String, #[serde(default)] handle: u64, service: Option<String>, method: Option<String>, #[serde(default)] input: Value }
+fn execute(call: Call) -> Result<Value,String> {
+    match call.op.as_str() {
+        "create" => {
+            let init = anki_proto::backend::BackendInit { preferred_langs: vec!["en".into()], ..Default::default() };
+            let backend = init_backend(&init.encode_to_vec())?;
+            let handle = NEXT_HANDLE.fetch_add(1,Ordering::Relaxed);
+            BACKENDS.lock().map_err(|_|"Backend registry unavailable")?.insert(handle,backend);
+            Ok(json!({"handle":handle}))
+        }
+        "destroy" => { BACKENDS.lock().map_err(|_|"Backend registry unavailable")?.remove(&call.handle); Ok(json!({})) }
+        "catalog" => {
+            let (_,services) = anki_proto_gen::get_services(&DESCRIPTORS);
+            Ok(json!({"revision":"96af4ca9d214e71743b1186fd2ceab1a7e7e3f32", "services":services.iter().map(|s|json!({"name":s.name,"methods":s.all_methods().map(|m|json!({"name":m.proto.name(),"input":m.proto.input().full_name(),"output":m.proto.output().full_name()})).collect::<Vec<_>>()})).collect::<Vec<_>>()}))
+        }
+        "call" => {
+            // Clone the handle, then release the registry lock. Abort/Progress must be
+            // able to run concurrently with a long sync/import on this backend.
+            let backend = BACKENDS.lock().map_err(|_|"Backend registry unavailable")?.get(&call.handle).cloned().ok_or("Backend handle is closed")?;
+            let name = call.service.as_deref().ok_or("Missing service")?;
+            let method_name = call.method.as_deref().ok_or("Missing method")?;
+            let (_,services) = anki_proto_gen::get_services(&DESCRIPTORS);
+            let service = services.iter().find(|s|s.name == name).ok_or("Unknown backend service")?;
+            let method = service.all_methods().find(|m|m.proto.name() == method_name).ok_or("Unknown backend method")?;
+            let input = if call.input.is_null() {json!({})}else{call.input};
+            let message = DynamicMessage::deserialize(method.proto.input(),input).map_err(|e|e.to_string())?;
+            let bytes = backend.run_service_method(service.index as u32,method.index as u32,&message.encode_to_vec()).map_err(|bytes| {
+                anki_proto::backend::BackendError::decode(bytes.as_slice()).map(|e|format!("{} [backend:{}]",e.message,e.kind)).unwrap_or_else(|e|e.to_string())
+            })?;
+            let message = DynamicMessage::decode(method.proto.output(),bytes.as_slice()).map_err(|e|e.to_string())?;
+            serde_json::to_value(message).map_err(|e|e.to_string())
+        }
+        _ => Err("Unknown backend operation".into())
+    }
+}
+pub fn request_json(input:&str)->String {
+    match std::panic::catch_unwind(||serde_json::from_str::<Call>(input).map_err(|e|e.to_string()).and_then(execute)) {
+        Ok(Ok(value))=>json!({"result":value}).to_string(),
+        Ok(Err(error))=>json!({"error":error}).to_string(),
+        Err(_)=>json!({"error":"The Anki backend could not complete this operation."}).to_string()
+    }
+}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn anki_backend_request(input:*const c_char)->*mut c_char {
+    let response = if input.is_null(){json!({"error":"Missing request"}).to_string()}else{request_json(&unsafe{CStr::from_ptr(input)}.to_string_lossy())};
+    CString::new(response).unwrap().into_raw()
+}

@@ -1,0 +1,3 @@
+[submodule "anki-backend"]
+	path = Vendor/anki
+	url = https://github.com/JSchoreels/anki.git

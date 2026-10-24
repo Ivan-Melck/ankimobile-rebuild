@@ -3,8 +3,10 @@ set -euo pipefail
 # Also works outside Xcode: scripts/build-native.sh builds the host library for swift test.
 export PATH="$HOME/.cargo/bin:$PATH"
 TASK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+"$TASK_ROOT/scripts/prepare-backend.sh"
+export PROTOC_BINARY="$(command -v protoc)"
 if [ -z "${PLATFORM_NAME:-}" ]; then
-  cargo build --locked --release --manifest-path "$TASK_ROOT/NativeEngine/Cargo.toml"
+  cargo build --lib --locked --release --manifest-path "$TASK_ROOT/NativeEngine/Cargo.toml"
   exit 0
 fi
 TASK_LIBS=()
@@ -17,7 +19,7 @@ for TASK_ARCH in ${ARCHS:-arm64}; do
   esac
   rustup target add "$TASK_TARGET"
   # Cargo's build scripts are host tools. Don't let the Xcode SDK contaminate them.
-  env -u SDKROOT -u CFLAGS -u CXXFLAGS -u LDFLAGS cargo build --locked --release \
+  env -u SDKROOT -u CFLAGS -u CXXFLAGS -u LDFLAGS cargo build --lib --locked --release \
     --manifest-path "$TASK_ROOT/NativeEngine/Cargo.toml" --target "$TASK_TARGET"
   TASK_LIBS+=("$TASK_ROOT/NativeEngine/target/$TASK_TARGET/release/libscheduling_engine.a")
 done

@@ -1,6 +1,8 @@
 //! JSON C boundary around the fork's actual FSRS and RWKV engines.
 #![allow(dead_code, unsafe_op_in_unsafe_fn)]
 mod compat;
+#[cfg(feature = "full-backend")]
+mod full_backend;
 pub mod rwkv;
 mod card {
     pub enum CardType {
