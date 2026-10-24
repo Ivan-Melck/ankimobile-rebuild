@@ -10,7 +10,13 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = window
         do {
             let directory = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            let nativeTesting = ProcessInfo.processInfo.arguments.contains("--anki-testing")
             let testing = ProcessInfo.processInfo.arguments.contains("--ui-testing")
+            if !testing || nativeTesting {
+                let state = try AnkiAppState(root: directory, testing: nativeTesting, reset: ProcessInfo.processInfo.arguments.contains("--reset-test-collection"))
+                let navigation = UINavigationController(rootViewController: AnkiDecksController(state: state))
+                window.rootViewController = navigation; state.applyAppearance(window); window.makeKeyAndVisible(); return true
+            }
             if testing { UserDefaults.standard.removeObject(forKey: "appearance") }
             let collectionURL = directory.appendingPathComponent(testing ? "ui-test-collection.json" : "collection.json")
             if ProcessInfo.processInfo.arguments.contains("--reset-test-collection"), FileManager.default.fileExists(atPath: collectionURL.path) { try FileManager.default.removeItem(at: collectionURL) }

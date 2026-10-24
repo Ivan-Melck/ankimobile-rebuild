@@ -3,6 +3,8 @@
 mod compat;
 #[cfg(feature = "full-backend")]
 mod full_backend;
+#[cfg(feature = "full-backend")]
+mod collection_rwkv;
 pub mod rwkv;
 mod card {
     pub enum CardType {

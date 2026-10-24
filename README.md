@@ -2,14 +2,15 @@
 
 An editable native iOS flashcard app reconstructed from static analysis of the supplied AnkiMobile 25.09 IPA with [REA](https://github.com/morluto/rea), Ghidra, and Apple's compiled resource metadata.
 
-**This is an initial functional reconstruction, not a complete or pixel-verified AnkiMobile replacement.** It implements the main local flashcard flows. AnkiWeb sync, APKG/SQLite compatibility, and media remain unimplemented. The native scheduling integration adds features from [JSchoreels/anki](https://github.com/JSchoreels/anki); see [the feature map and remaining differences](docs/fork-integration.md). See [fidelity and evidence](docs/analysis.md).
+**Full compatibility is still being validated.** The default app now uses the complete shared backend from [JSchoreels/anki](https://github.com/JSchoreels/anki) for real Anki SQLite collections, package import/export, scheduling, rendering and sync. The native UI is editable UIKit. See the [compatibility inventory and remaining gaps](docs/compatibility.md); backend support does not establish complete native UI or desktop add-on parity. See [fidelity and evidence](docs/analysis.md).
 
 ## Build for iPhone or iPad
 
 On a Mac with Xcode 16.4 (or newer) and an iOS simulator runtime installed:
 
 ```sh
-brew install xcodegen
+brew install xcodegen protobuf
+scripts/prepare-backend.sh
 # Install Rust via rustup if needed: https://rustup.rs
 xcodegen generate
 open Flashcards.xcodeproj
@@ -26,18 +27,18 @@ Select the `Flashcards` scheme and an iPhone/iPad simulator, then Run. For a phy
 
 [GitHub Actions](https://github.com/Ivan-Melck/ankimobile-rebuild/actions) builds and runs the native app on a hosted iPhone simulator. Each run uploads an `ios-simulator-results` artifact with screenshots, the `.xcresult` test bundle, generated Xcode project, build log, and simulator `.app`. A simulator `.app` cannot be installed on a physical iPhone.
 
-## Implemented
+## Current collection path
 
-- Native deck list with new/review counts; create, rename, configure limits, and delete decks.
-- Add/edit Basic, reversed, and Cloze notes with tags and HTML fields.
-- WebKit card rendering, tap-to-reveal, four answer ratings with interval previews, keyboard review, undo, bury, and suspend.
-- Search by text, `deck:"French Verbs"`, `tag:verbs`, `flag:3`, `is:new`, `is:learn`, `is:review`, `is:due`, `is:suspended`, `is:buried`; combine with spaces and negate using `-`.
-- Daily limits, local learning/review queues, review history, and statistics.
-- CSV/TSV import with quoted fields and duplicate detection; CSV export; full JSON collection backup/restore.
-- System/light/dark appearance and adjustable card text size.
-- Atomic persistent storage and validation before backup replacement.
+- Real Anki collections and `.colpkg` / `.apkg` imports into separate profiles, with a profile switcher and collection export including media.
+- Native deck hierarchy, full backend search, arbitrary note fields and preserved note types/templates.
+- Backend card rendering, template JavaScript, local media and native answer controls.
+- Anki scheduling states, answer history, undo, burying and suspension.
+- RWKV Instant candidate scores and Curve interval integration using canonical fork replay rows. Model and precision are local per-profile settings; Instant retains the selected fallback due-date engine.
+- Native deck options, login/sync, Keychain tokens, cancellation, full-sync direction choices and local backups before full sync.
 
-Fresh app collections use **FSRS-7**. Deck Options also offers FSRS-6, RWKV Curve, RWKV Instant, and the original Classic approximation. Study Plan compares retention against workload; saved presets, ordered card rules, repeat spacing, calibration, and FSRS optimization are included. The actual fork inference engines run locally in Rust. Older rebuild backups retain Classic until you select a memory model. JSON backups are specific to this rebuild. CSV imports create Basic notes; CSV exports preserve fields and tags, not note types or scheduling.
+The original JSON-based local reconstruction remains under Collection Tools → Original Local Collection. Its Study Plan, simulation, calibration and CSV workflows are separate from real Anki collections. They are not automatically applied to imported Anki data. No existing JSON collection is replaced or silently migrated.
+
+A private collection test passed a round trip of 8,478 cards, 6,402 notes, 10 note types, 13,876 media files and 31,230 canonical history rows. Personal data is excluded from the repository and public CI. This checks preservation; it does not certify every review interaction. [Verification details](docs/verification.md).
 
 ## Make changes
 
@@ -46,22 +47,23 @@ Fresh app collections use **FSRS-7**. Deck Options also offers FSRS-6, RWKV Curv
 | Native screens and navigation | `ios/Flashcards/Controllers/` |
 | Card font, spacing, colors | `ios/Flashcards/Resources/reviewer.css` |
 | Theme and preferences | `ios/Flashcards/Support/AppModel.swift` |
-| Card templates and cloze rendering | `Sources/FlashcardsCore/Rendering.swift` |
-| Scheduling policy and engine bridge | `Sources/FlashcardsCore/StudyPlanning.swift`, `NativeEngine/src/lib.rs` |
-| Classic approximation | `Sources/FlashcardsCore/Scheduler.swift` |
-| Models and collection format | `Sources/FlashcardsCore/Models.swift`, `CollectionStore.swift` |
-| Search / CSV | `Search.swift`, `DelimitedText.swift` |
-| Build settings and targets | `project.yml` |
+| Real Anki backend bridge and collection operations | `Sources/FlashcardsCore/AnkiBackend.swift`, `NativeEngine/src/full_backend.rs` |
+| Native RWKV replay/score coordination | `NativeEngine/src/collection_rwkv.rs` |
+| Shared Anki implementation | `Vendor/anki/` (pinned submodule; keep adapter changes outside it) |
+| Native profile/media/auth support | `ios/Flashcards/Support/Anki*.swift` |
+| Legacy JSON reconstruction | `CollectionStore.swift`, `StudyPlanning.swift`, `NativeEngine/src/lib.rs` |
+| Build settings and targets | `project.yml`, `scripts/build-native.sh` |
 
-`ReviewScheduler` is injected for Classic scheduling. Modern scheduling is configured through typed `SchedulingOptions` and a small JSON C ABI, keeping native UI, scheduling policy, and inference code separate. The core is a standalone Swift package with no UIKit dependency:
+The portable core is a standalone Swift package with no UIKit dependency:
 
 ```sh
 scripts/build-native.sh
 swift test
+scripts/test-sync.sh
 cargo test --release --locked --manifest-path NativeEngine/Cargo.toml --features validation --test parity
 ```
 
-See [architecture](docs/architecture.md), [analysis and fidelity](docs/analysis.md), [verification](docs/verification.md), and [local REA workflow](docs/reproduce-analysis.md). No supplied IPA, original executable, extracted assets, or decompiled original code is published in this repository.
+See [architecture](docs/architecture.md), [compatibility](docs/compatibility.md), [analysis and fidelity](docs/analysis.md), [verification](docs/verification.md), and [local REA workflow](docs/reproduce-analysis.md). No supplied IPA, original executable, extracted assets, recovered proprietary code or personal collection data is published.
 
 ## Simulator captures
 

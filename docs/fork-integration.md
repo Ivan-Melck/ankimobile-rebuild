@@ -1,5 +1,7 @@
 # Anki fork integration
 
+The default app now uses the full fork backend and real Anki collections. See [current compatibility](compatibility.md) and [architecture](architecture.md). The remainder of this page records the earlier **legacy JSON collection** integration, accessible from Collection Tools → Original Local Collection. Its limitations and UI capabilities apply to that path, not to the new Anki collection path.
+
 Reference: JSchoreels/anki at `96af4ca9d214e71743b1186fd2ceab1a7e7e3f32`.
 
 ## Native workflows

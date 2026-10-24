@@ -28,6 +28,8 @@ jobs:
         run: scripts/build-native.sh
       - name: Core behavior tests
         run: swift test
+      - name: Validate two-client sync against the fork server
+        run: scripts/test-sync.sh
       - name: Generate Xcode project
         run: |
           brew install xcodegen

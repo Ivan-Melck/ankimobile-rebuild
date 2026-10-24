@@ -25,7 +25,7 @@ public enum AnkiValue: Equatable, Codable, Sendable {
     public subscript(_ key: String) -> AnkiValue { get { if case .object(let o) = self { return o[key] ?? .null }; return .null } set { var o = object; o[key] = newValue; self = .object(o) } }
     public var object: [String: AnkiValue] { if case .object(let o) = self { return o }; return [:] }
     public var array: [AnkiValue] { if case .array(let a) = self { return a }; return [] }
-    public var string: String { switch self { case .string(let s): return s; case .number(let n): return String(format: "%.0f", n); default: return "" } }
+    public var string: String { switch self { case .string(let s): return s; case .number(let n): return n.rounded() == n ? String(format: "%.0f", n) : String(n); default: return "" } }
     public var double: Double { if case .number(let n) = self { return n }; return Double(string) ?? 0 }
     public var int: Int { Int(double) }
     public var bool: Bool { if case .bool(let b) = self { return b }; return false }
@@ -50,6 +50,10 @@ public final class AnkiBackend: @unchecked Sendable {
     @discardableResult public func call(_ service: String, _ method: String, _ input: [String: AnkiValue] = [:]) throws -> AnkiValue {
         try Self.send(Request(op: "call", handle: handle, service: "Backend\(service)Service", method: method, input: .object(input)))
     }
+    public func perform(_ operation: String, input: [String: AnkiValue]) throws -> AnkiValue {
+        try Self.send(Request(op: operation, handle: handle, input: .object(input)))
+    }
+    public static func schema(_ name: String) throws -> AnkiValue { try send(Request(op: "schema", input: .object(["name": .string(name)]))) }
     public static func catalog() throws -> AnkiValue { try send(Request(op: "catalog")) }
 }
 
@@ -95,7 +99,12 @@ public final class AnkiCollection: @unchecked Sendable {
         let names = ["again", "hard", "good", "easy"]
         guard (1...4).contains(rating) else { throw CollectionError.invalidInput("Invalid answer rating.") }
         let states = queued["states"]
-        try backend.call("Scheduler", "AnswerCard", ["cardId": queued["card"]["id"], "currentState": states["current"], "newState": states[names[rating - 1]], "rating": .number(Double(rating - 1)), "answeredAtMillis": .string(String(Int64(Date().timeIntervalSince1970 * 1000))), "millisecondsTaken": .number(min(3_600_000, max(0, seconds * 1000).rounded()))])
+        var input: [String: AnkiValue] = ["cardId": queued["card"]["id"], "currentState": states["current"], "newState": states[names[rating - 1]], "rating": .number(Double(rating - 1)), "answeredAtMillis": .string(String(Int64(Date().timeIntervalSince1970 * 1000))), "millisecondsTaken": .number(min(3_600_000, max(0, seconds * 1000).rounded()))]
+        let values = queued["rwkvPrediction"]["s90s"].array
+        if queued["rwkvPrediction"]["curveEnabled"].bool, values.indices.contains(rating - 1), values[rating - 1].double > 0 { input["rwkvS90"] = values[rating - 1] }
+        if queued["rwkvPrediction"]["retrievability"] != .null { input["rwkvRetrievability"] = queued["rwkvPrediction"]["retrievability"] }
+        if queued["rwkvPrediction"]["reviewKind"] != .null { input["rwkvReviewKind"] = queued["rwkvPrediction"]["reviewKind"] }
+        try backend.call("Scheduler", "AnswerCard", input)
     }
     public func undo() throws { try backend.call("Collection", "Undo") }
     public func exportCollection(to url: URL, includeMedia: Bool = true) throws {
@@ -119,7 +128,8 @@ extension AnkiCollection {
             }
             let collection = try AnkiCollection(directory: destination)
             if source.pathExtension.lowercased() == "apkg" { try collection.backend.call("ImportExport", "ImportAnkiPackage", ["packagePath": .string(source.path), "options": .object([:])]) }
-            _ = try collection.backend.call("Collection", "CheckDatabase")
+            // CheckDatabase is a repair operation in Anki: it can normalize
+            // fields/tags and rewrite notes. Import must not silently repair.
             return collection
         } catch { try? FileManager.default.removeItem(at: destination); throw error }
     }
@@ -133,5 +143,55 @@ extension AnkiCollection {
         var input: [String: AnkiValue] = ["auth": auth, "upload": .bool(upload)]
         if let serverUSN { input["serverUsn"] = serverUSN }
         try backend.call("Sync", "FullUploadOrDownload", input)
+    }
+}
+
+extension AnkiCollection {
+    public func prepareReview(deckID: String, model: String = "sm56", precision: String = "cards_int4_notes_int8") throws -> AnkiValue {
+        try selectDeck(deckID)
+        let configs = try backend.call("DeckConfig", "GetDeckConfigsForUpdate", ["did": .string(deckID)])
+        let rwkv = configs["allConfig"].array.contains { $0["config"]["config"]["rwkvReviewEnabled"].bool || $0["config"]["config"]["rwkvReviewInstantOrderEnabled"].bool }
+        var predictions: AnkiValue = .object([:])
+        if rwkv {
+            guard let path = Bundle.module.url(forResource: model, withExtension: "bin", subdirectory: "RWKV")?.path else { throw CollectionError.invalidInput("RWKV model weights are unavailable.") }
+            var dynamicReplay = configs["allConfig"].array.contains { entry in
+                let config = entry["config"]["config"]
+                return (config["rwkvReviewEnabled"].bool || config["rwkvReviewInstantOrderEnabled"].bool) && config["rwkvReviewDynamicPresetReplay"].bool
+            }
+            if let encoded = try? backend.call("Config", "GetConfigJson", ["val": .string("rwkvDynamicPresetReplay")])["json"].string,
+               let data = Data(base64Encoded: encoded), let setting = try? JSONDecoder().decode(Bool.self, from: data) { dynamicReplay = setting }
+            predictions = try backend.perform("rwkv_prepare", input: ["deckId": .string(deckID), "model": .string(model), "path": .string(path), "precision": .string(precision), "dynamicPresetReplay": .bool(dynamicReplay)])["predictions"]
+        }
+        var queue = try queuedCards()
+        var cards = queue["cards"].array
+        for index in cards.indices {
+            let card = cards[index]["card"], prediction = predictions[card["id"].string]
+            guard prediction != .null else { continue }
+            let deck = try backend.call("Decks", "GetDeck", ["did": card["deckId"]])
+            let actualDeck = deck["normal"] == .null ? try backend.call("Decks", "GetDeck", ["did": card["originalDeckId"]]) : deck
+            let config = try backend.call("DeckConfig", "GetDeckConfig", ["dcid": actualDeck["normal"]["configId"]])["config"]
+            var metadata = prediction; metadata["curveEnabled"] = .bool(config["rwkvReviewEnabled"].bool)
+            cards[index]["rwkvPrediction"] = metadata
+            if config["rwkvReviewEnabled"].bool {
+                var input: [String: AnkiValue] = ["cardId": card["id"]]
+                for (i, name) in ["again", "hard", "good", "easy"].enumerated() where prediction["intervals"].array.indices.contains(i) { input[name] = prediction["intervals"].array[i] }
+                cards[index]["states"] = try backend.call("Scheduler", "SchedulingStatesWithIntervals", input)
+            }
+        }
+        queue["cards"] = .array(cards); return queue
+    }
+}
+
+extension AnkiCollection {
+    public func deckConfiguration(_ deckID: String) throws -> (all: AnkiValue, selected: AnkiValue) {
+        let value = try backend.call("DeckConfig", "GetDeckConfigsForUpdate", ["did": .string(deckID)])
+        guard let config = value["allConfig"].array.first(where: { $0["config"]["id"] == value["currentDeck"]["configId"] })?["config"] else { throw CollectionError.notFound("This deck has no scheduling preset.") }
+        return (value, config)
+    }
+    public func saveDeckConfiguration(_ config: AnkiValue, deckID: String, original: AnkiValue) throws {
+        let shared = ["cardStateCustomizer", "newCardsIgnoreReviewLimit", "fsrs", "applyAllParentLimits", "fsrsHealthCheck", "loadBalancerEnabled", "fsrsShortTermWithStepsEnabled", "fsrsLearningQueuesDisabled", "reviewFuzzEnabled", "reviewFuzzBase", "reviewFuzzFactorShort", "reviewFuzzFactorMid", "reviewFuzzFactorLong"]
+        var input = original.object.filter { shared.contains($0.key) }
+        input["targetDeckId"] = .string(deckID); input["configs"] = .array([config]); input["limits"] = original["currentDeck"]["limits"]
+        try backend.call("DeckConfig", "UpdateDeckConfigs", input)
     }
 }

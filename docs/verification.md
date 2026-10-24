@@ -1,5 +1,15 @@
 # Verification
 
+## Real Anki collection path
+
+The full shared backend [simulator run](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40127162417) passed at revision `631760f917ee001afe806e102abba52055cd1293`: host checks, native iOS build and the three existing legacy UI test flows. The new native Anki screens and RWKV collection coordinator are subsequent changes and require their own simulator run.
+
+Local checks now pass 42 core tests (two optional fixture/server tests skip in an ordinary run). These cover actual collection creation/rendering/review/undo, package import, lossless round trips, failed-import isolation, config preservation and RWKV Instant/Curve replay. The isolated sync test is run separately with `scripts/test-sync.sh`. Model vector tests and older JSON-path tests remain separate evidence.
+
+With the user's authorization, a private local profile was copied without opening its source database in SQLite. Database/WAL source hashes were verified unchanged after testing. A second disposable copy passed `.colpkg` export/import comparison of **8,478 cards, 6,402 notes, 10 note types, 5 decks, 31,230 canonical RWKV history rows and 13,876 media files**. Every card and note protobuf, template, history row, media filename and media byte sequence matched. No collection contents or media were uploaded. This caught and fixed an automatic repair-on-import operation that rewrote note timestamps.
+
+This validates preservation for that fixture. Live AnkiWeb, exact desktop RWKV review-order parity, filtered/same-day edge cases and complete rendering/UI parity remain outstanding. See the [compatibility inventory](compatibility.md).
+
 ## Fork integration
 
 The fork integration has 32 portable XCTest checks, including published initial FSRS intervals, all five RWKV models and four precision modes, answer/preview/undo consistency, persisted preset routing, numeric search, learn-ahead, repeat spacing, backups, real-history calibration/fitting, and forecasts that leave live data unchanged. They pass on Linux and on the macOS runner. The Rust parity harness independently checks SM36, SM40v2, SM55 and SM56 against the fork’s published probability/curve vectors at a maximum absolute error of `1e-5`.
