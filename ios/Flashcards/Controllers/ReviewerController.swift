@@ -86,6 +86,7 @@ final class ReviewerController: UIViewController {
             text.append(NSAttributedString(string: String(pair.0), attributes: [.foregroundColor: pair.1]))
         }
         counts.attributedText = text
+        counts.accessibilityLabel = "\(values.new) new, \(values.learning) learning, \(values.review) review"
         controls.arrangedSubviews.forEach { controls.removeArrangedSubview($0); $0.removeFromSuperview() }
         if let current = current {
             render(current.questionHTML)

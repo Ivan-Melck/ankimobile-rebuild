@@ -6,12 +6,17 @@ An editable native iOS flashcard app reconstructed from static analysis of the s
 
 ## Build for iPhone or iPad
 
-On a Mac with Xcode and its iOS simulator runtime installed:
+On a Mac with Xcode 16.4 (or newer) and an iOS simulator runtime installed:
+
+```sh
+open Flashcards.xcodeproj
+```
+
+The checked-in project is generated from `project.yml`. After changing target settings or adding source files, regenerate it:
 
 ```sh
 brew install xcodegen
 xcodegen generate
-open Flashcards.xcodeproj
 ```
 
 Select the `Flashcards` scheme and an iPhone/iPad simulator, then Run. For a physical device, select your own development team in Signing & Capabilities. The minimum deployment target is iOS 15.2.

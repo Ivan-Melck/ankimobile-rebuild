@@ -35,7 +35,7 @@ final class FlashcardsUITests: XCTestCase {
         screenshot("04-Answer")
         app.buttons["rate.easy"].tap()
         XCTAssertTrue(app.buttons["studyDone"].waitForExistence(timeout: 5))
-        app.navigationBars.buttons["Study Actions"].tap()
+        app.buttons["Study Actions"].tap()
         app.buttons["Undo Last Answer"].tap()
         XCTAssertTrue(app.buttons["showAnswer"].waitForExistence(timeout: 5))
         app.navigationBars.buttons["Decks"].tap()

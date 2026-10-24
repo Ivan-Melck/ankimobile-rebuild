@@ -40,9 +40,13 @@ try:
   lines=queue.read_text().splitlines() if queue.exists() else []
   if completed>=len(lines):time.sleep(0.5);continue
   item=json.loads(lines[completed]);label=item['label'];name=item['tool']
+  reply_path = output / f'{label}.json'
+  artifact_path = item.get('arguments', {}).get('path')
+  if name == 'export_evidence_bundle' and artifact_path and pathlib.Path(artifact_path).resolve() == reply_path.resolve():
+   raise ValueError('Export path must differ from the JSON-RPC reply path.')
   print(f'START {label} {name}',flush=True)
   result=rpc('tools/call',{'name':name,'arguments':item.get('arguments',{})})
-  (output/f'{label}.json').write_text(json.dumps(result,indent=2)+'\n')
+  reply_path.write_text(json.dumps(result,indent=2)+'\n')
   completed+=1
   print(f'DONE {label}',flush=True)
   if name=='close_binary':break
