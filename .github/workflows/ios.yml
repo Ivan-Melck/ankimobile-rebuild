@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ios-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   test:
@@ -40,13 +40,30 @@ jobs:
               f.write('SIMULATOR_ID=' + device['udid'] + '\n')
           print(device)
           PY
-      - name: Build and test native iOS app
+      - name: Build native iOS app
+        timeout-minutes: 15
         run: |
           set -o pipefail
-          xcodebuild test -project Flashcards.xcodeproj -scheme Flashcards \
+          xcodebuild build-for-testing -project Flashcards.xcodeproj -scheme Flashcards \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -derivedDataPath build/DerivedData -resultBundlePath build/NativeBuild.xcresult \
+            CODE_SIGNING_ALLOWED=NO | tee build-output.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-build-diagnostics
+          path: |
+            Flashcards.xcodeproj
+            build-output.log
+          retention-days: 14
+      - name: Run iPhone UI tests
+        timeout-minutes: 15
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building -project Flashcards.xcodeproj -scheme Flashcards \
             -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
             -derivedDataPath build/DerivedData -resultBundlePath build/Simulator.xcresult \
-            CODE_SIGNING_ALLOWED=NO | tee build-output.log
+            CODE_SIGNING_ALLOWED=NO | tee test-output.log
       - name: Export simulator screenshots
         if: always()
         run: |
@@ -60,8 +77,10 @@ jobs:
           name: ios-simulator-results
           path: |
             build/Simulator.xcresult
+            build/NativeBuild.xcresult
             build/screenshots
             build/DerivedData/Build/Products/Debug-iphonesimulator/Flashcards.app
+            test-output.log
             Flashcards.xcodeproj
             build-output.log
           retention-days: 14
