@@ -1,0 +1,12 @@
+/* Original implementation: editable card presentation, based on observed layout metrics. */
+:root { color-scheme: light dark; }
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; margin: 15px 15px 100px; overflow-wrap: anywhere; }
+#qa { padding-top: 16px; }
+img { max-width: 95%; height: auto; }
+audio, video { max-width: 95%; }
+hr { border: 0; border-top: 1px solid #8886; margin: 24px 0; }
+a { color: #246fe1; }
+.nightMode a { color: #7cf; }
+.cloze { color: #246fe1; font-weight: bold; }
+.nightMode .cloze { color: #7cf; }
+pre { white-space: pre-wrap; text-align: left; }

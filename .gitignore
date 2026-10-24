@@ -1,0 +1,18 @@
+# Supplied proprietary app and local reverse-engineering tools
+*.ipa
+.tools/
+analysis/extracted/
+analysis/recovered-source/
+analysis/evidence/
+
+# Build products and local IDE state
+.build/
+.swiftpm/
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+.DS_Store
+*.xcresult/
+*.log
+.env

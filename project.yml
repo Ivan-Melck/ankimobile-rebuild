@@ -1,0 +1,56 @@
+name: Flashcards
+options:
+  bundleIdPrefix: com.ivanmelck
+  deploymentTarget:
+    iOS: '15.2'
+packages:
+  FlashcardsCore:
+    path: .
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    CODE_SIGN_STYLE: Automatic
+    IPHONEOS_DEPLOYMENT_TARGET: '15.2'
+targets:
+  Flashcards:
+    type: application
+    platform: iOS
+    sources:
+      - path: ios/Flashcards
+        excludes: [Resources]
+      - path: ios/Flashcards/Resources
+        buildPhase: resources
+    dependencies:
+      - package: FlashcardsCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ivanmelck.flashcardsrebuild
+        TARGETED_DEVICE_FAMILY: '1,2'
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Flashcards
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
+        CURRENT_PROJECT_VERSION: '1'
+        MARKETING_VERSION: '0.1.0'
+  FlashcardsUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [ios/FlashcardsUITests]
+    dependencies:
+      - target: Flashcards
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ivanmelck.flashcardsrebuild.uitests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Flashcards:
+    build:
+      targets:
+        Flashcards: all
+        FlashcardsUITests: [test]
+    test:
+      gatherCoverageData: true
+      targets: [FlashcardsUITests]

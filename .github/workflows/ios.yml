@@ -1,0 +1,59 @@
+name: iOS Simulator
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Core behavior tests
+        run: swift test
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: Select available iPhone simulator
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          runtimes = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '-j']))['devices']
+          devices = [d for runtime, values in runtimes.items() if 'iOS' in runtime for d in values if d['name'].startswith('iPhone')]
+          assert devices, 'No iPhone simulator available'
+          device = devices[0]
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write('SIMULATOR_ID=' + device['udid'] + '\n')
+          print(device)
+          PY
+      - name: Build and test native iOS app
+        run: |
+          set -o pipefail
+          xcodebuild test -project Flashcards.xcodeproj -scheme Flashcards \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -derivedDataPath build/DerivedData -resultBundlePath build/Simulator.xcresult \
+            CODE_SIGNING_ALLOWED=NO | tee build-output.log
+      - name: Export simulator screenshots
+        if: always()
+        run: |
+          mkdir -p build/screenshots
+          if [ -d build/Simulator.xcresult ]; then
+            xcrun xcresulttool export attachments --path build/Simulator.xcresult --output-path build/screenshots || true
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-simulator-results
+          path: |
+            build/Simulator.xcresult
+            build/screenshots
+            build/DerivedData/Build/Products/Debug-iphonesimulator/Flashcards.app
+            Flashcards.xcodeproj
+            build-output.log
+          retention-days: 14
