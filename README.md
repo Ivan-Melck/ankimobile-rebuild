@@ -65,6 +65,11 @@ See [architecture](docs/architecture.md), [analysis and fidelity](docs/analysis.
 
 ## Simulator captures
 
+The fork integration adds these native planning screens. [Verification and test results](docs/verification.md) include the exact tested revision and remaining runtime limits.
+
+<img src="docs/screenshots/study-plan.png" width="230" alt="Study Plan"> <img src="docs/screenshots/retention-comparison.png" width="230" alt="Compare retention against workload"> <img src="docs/screenshots/retention-target.png" width="230" alt="Choose a retention target">
+
+
 Captured from the rebuilt app on an iPhone 16 Pro simulator.
 
 <img src="docs/screenshots/decks.png" width="240" alt="Deck list in the rebuilt iOS app"> <img src="docs/screenshots/answer.png" width="240" alt="Study answer with interval previews in the rebuilt iOS app">

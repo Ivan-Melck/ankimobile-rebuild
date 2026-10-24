@@ -8,12 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		01DAC0C29BDD4F71F2D6C8A1 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 526D21E8518978816626AFDE /* AppModel.swift */; };
+		0763C6E00EE3445C15C86AEB /* SchedulingPresetsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E238140F3BA661A20147E1 /* SchedulingPresetsController.swift */; };
 		1A3707BF1CD47533B1C519BA /* SettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76A8611FFDB64B4117FCCC53 /* SettingsController.swift */; };
+		20329DEAA364C41517C37B81 /* CalibrationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3178C5536306043BEFBDD1C3 /* CalibrationController.swift */; };
 		3405F165002006C1B44BB896 /* DecksController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7BB7D06B60176B537A514CD /* DecksController.swift */; };
 		3CA3A12540843982D9A4DC48 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 289D6B37A6FA519E10198F2C /* AppDelegate.swift */; };
 		4ECA90AFC34080E633B576E7 /* BrowserController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE629A24F83FBD2DE842FA62 /* BrowserController.swift */; };
 		56082544C3F4D7B9E75FE37B /* ReviewerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17C8CEC1882E5A8880DED03 /* ReviewerController.swift */; };
 		800C15CC7F092A0B89530523 /* CardWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51524D4A9F6706DA1D20373E /* CardWebView.swift */; };
+		87543B3FCE0B1CA880F556CA /* StudyPlanController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53205887C3BFF068F50AB999 /* StudyPlanController.swift */; };
+		B38C1AFA8016162762C7CF16 /* PlanningUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE4EA4A6F9542DAB641E604 /* PlanningUI.swift */; };
 		BBFBE898C41CC4D089E2D26E /* FlashcardsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E40CD64F095A8BA4D1644DE /* FlashcardsUITests.swift */; };
 		DA905E6BBFD009FC90031EAE /* reviewer.css in Resources */ = {isa = PBXBuildFile; fileRef = 73848A39B0FAAC3F60F6B42C /* reviewer.css */; };
 		E099DD204F4EAA76F90FABFD /* ToolsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2D52A102763134822FC397 /* ToolsController.swift */; };
@@ -38,16 +42,20 @@
 		16F50DF7D6F58681C64333AB /* EditorController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorController.swift; sourceTree = "<group>"; };
 		1A2D52A102763134822FC397 /* ToolsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsController.swift; sourceTree = "<group>"; };
 		289D6B37A6FA519E10198F2C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		3178C5536306043BEFBDD1C3 /* CalibrationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationController.swift; sourceTree = "<group>"; };
 		3E40CD64F095A8BA4D1644DE /* FlashcardsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardsUITests.swift; sourceTree = "<group>"; };
 		51524D4A9F6706DA1D20373E /* CardWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardWebView.swift; sourceTree = "<group>"; };
 		526D21E8518978816626AFDE /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		53205887C3BFF068F50AB999 /* StudyPlanController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyPlanController.swift; sourceTree = "<group>"; };
 		54B2C5D70E40AC839CA59370 /* DeckOptionsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckOptionsController.swift; sourceTree = "<group>"; };
 		73848A39B0FAAC3F60F6B42C /* reviewer.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = reviewer.css; sourceTree = "<group>"; };
 		76A8611FFDB64B4117FCCC53 /* SettingsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsController.swift; sourceTree = "<group>"; };
+		83E238140F3BA661A20147E1 /* SchedulingPresetsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulingPresetsController.swift; sourceTree = "<group>"; };
 		99A90CBE9CD5DEC355E72942 /* ankimobile-rebuild */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "ankimobile-rebuild"; path = .; sourceTree = SOURCE_ROOT; };
 		A77E4F679022D512ADC4293E /* StatisticsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsController.swift; sourceTree = "<group>"; };
 		A7BB7D06B60176B537A514CD /* DecksController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecksController.swift; sourceTree = "<group>"; };
 		B17C8CEC1882E5A8880DED03 /* ReviewerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewerController.swift; sourceTree = "<group>"; };
+		DBE4EA4A6F9542DAB641E604 /* PlanningUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanningUI.swift; sourceTree = "<group>"; };
 		DE629A24F83FBD2DE842FA62 /* BrowserController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserController.swift; sourceTree = "<group>"; };
 		F760E860CA556E45A8229982 /* FlashcardsUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FlashcardsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -77,12 +85,16 @@
 			isa = PBXGroup;
 			children = (
 				DE629A24F83FBD2DE842FA62 /* BrowserController.swift */,
+				3178C5536306043BEFBDD1C3 /* CalibrationController.swift */,
 				54B2C5D70E40AC839CA59370 /* DeckOptionsController.swift */,
 				A7BB7D06B60176B537A514CD /* DecksController.swift */,
 				16F50DF7D6F58681C64333AB /* EditorController.swift */,
+				DBE4EA4A6F9542DAB641E604 /* PlanningUI.swift */,
 				B17C8CEC1882E5A8880DED03 /* ReviewerController.swift */,
+				83E238140F3BA661A20147E1 /* SchedulingPresetsController.swift */,
 				76A8611FFDB64B4117FCCC53 /* SettingsController.swift */,
 				A77E4F679022D512ADC4293E /* StatisticsController.swift */,
+				53205887C3BFF068F50AB999 /* StudyPlanController.swift */,
 				1A2D52A102763134822FC397 /* ToolsController.swift */,
 			);
 			path = Controllers;
@@ -170,6 +182,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE79D582715594345ADD9246 /* Build configuration list for PBXNativeTarget "Flashcards" */;
 			buildPhases = (
+				F706ABC7028EEB1DF22DB973 /* Build native scheduling engines */,
 				B5E77E6414FBCAEFBCAD1F6A /* Sources */,
 				602C9176F2311B36D7144862 /* Resources */,
 				9190A102B33B13994342CCFF /* Frameworks */,
@@ -238,6 +251,28 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		F706ABC7028EEB1DF22DB973 /* Build native scheduling engines */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build native scheduling engines";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/build-native.sh\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		55819E4742DC6F948FC1C74F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -254,13 +289,17 @@
 				3CA3A12540843982D9A4DC48 /* AppDelegate.swift in Sources */,
 				01DAC0C29BDD4F71F2D6C8A1 /* AppModel.swift in Sources */,
 				4ECA90AFC34080E633B576E7 /* BrowserController.swift in Sources */,
+				20329DEAA364C41517C37B81 /* CalibrationController.swift in Sources */,
 				800C15CC7F092A0B89530523 /* CardWebView.swift in Sources */,
 				E745553F7536D3E4E036D8B7 /* DeckOptionsController.swift in Sources */,
 				3405F165002006C1B44BB896 /* DecksController.swift in Sources */,
 				EC043DB26AC8499011701DD0 /* EditorController.swift in Sources */,
+				B38C1AFA8016162762C7CF16 /* PlanningUI.swift in Sources */,
 				56082544C3F4D7B9E75FE37B /* ReviewerController.swift in Sources */,
+				0763C6E00EE3445C15C86AEB /* SchedulingPresetsController.swift in Sources */,
 				1A3707BF1CD47533B1C519BA /* SettingsController.swift in Sources */,
 				EC451E7E028250FECC0AEB9A /* StatisticsController.swift in Sources */,
+				87543B3FCE0B1CA880F556CA /* StudyPlanController.swift in Sources */,
 				E099DD204F4EAA76F90FABFD /* ToolsController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -362,7 +401,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Flashcards;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
@@ -374,7 +414,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				LIBRARY_SEARCH_PATHS = "$(inherited) $(SRCROOT)/build/native/$(PLATFORM_NAME)";
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ivanmelck.flashcardsrebuild;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -403,7 +444,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Flashcards;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
@@ -415,7 +457,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				LIBRARY_SEARCH_PATHS = "$(inherited) $(SRCROOT)/build/native/$(PLATFORM_NAME)";
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ivanmelck.flashcardsrebuild;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

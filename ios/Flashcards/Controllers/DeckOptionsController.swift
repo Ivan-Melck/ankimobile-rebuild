@@ -58,7 +58,7 @@ final class DeckOptionsController: PlanningTableController {
         case .identity:
             if p.row == 0 { return PlanningUI.cell("Name", value: deck?.name, disclosure: true) }
             let preset = model.store.schedulingPresets.first { $0.id == deck?.options.presetID }
-            return PlanningUI.cell("Scheduling preset", value: preset?.name ?? "This deck", symbol: "square.stack", disclosure: true)
+            return PlanningUI.cell("Preset", value: preset?.name ?? "This deck", symbol: "square.stack", disclosure: true)
         case .scheduling:
             if p.row == 0 { let cell = PlanningUI.cell("Memory model", value: s.engine.title, symbol: "brain", disclosure: true); cell.accessibilityIdentifier = "memoryModel"; return cell }
             if p.row == 1 { let cell = PlanningUI.cell("Desired retention", value: "\(Int((s.desiredRetention * 100).rounded()))%", symbol: "scope", disclosure: true); cell.accessibilityIdentifier = "desiredRetention"; return cell }

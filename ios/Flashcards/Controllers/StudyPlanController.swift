@@ -126,7 +126,7 @@ private final class ForecastCell: UITableViewCell {
     func configure(_ p: WorkloadPoint, days: Int, maxSeconds: Double, selected: Bool) {
         let percent = Int((p.retention * 100).rounded())
         heading.text = "\(percent)% retention" + (selected ? "  ·  Current" : "")
-        metrics.text = String(format: "%.1f min/day   ·   %.0f reviews/day", p.seconds / Double(days) / 60, Double(p.reviews) / Double(days))
+        metrics.text = String(format: "%.1f min/day   ·   %.1f reviews/day", p.seconds / Double(days) / 60, Double(p.reviews) / Double(days))
         retained.text = p.seconds > 0 ? String(format: "≈ %.0f cards remembered at day %d  ·  %.1f cards/min", p.memorized, days, p.efficiency) : String(format: "≈ %.0f cards remembered at day %d  ·  No review time projected", p.memorized, days)
         bar.progress = Float(maxSeconds > 0 ? p.seconds / maxSeconds : 0)
         accessibilityIdentifier = "forecast.\(percent)"

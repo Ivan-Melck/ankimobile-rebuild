@@ -49,8 +49,7 @@ final class SchedulingRulesController: PlanningTableController {
     required init?(coder: NSCoder) { fatalError() }
     override func viewDidLoad() {
         super.viewDidLoad(); title = "Card Rules"; tableView.rowHeight = UITableView.automaticDimension
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add))
-        navigationItem.leftBarButtonItem = editButtonItem
+        navigationItem.rightBarButtonItems = [UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add)), editButtonItem]
         tableView.tableHeaderView = PlanningUI.hero(eyebrow: "Adapt to the card", title: "A target for what matters", detail: "Rules run from top to bottom. The first match sets that card’s preset and retention.", symbol: "line.3.horizontal.decrease.circle")
     }
     override func setEditing(_ editing: Bool, animated: Bool) { super.setEditing(editing, animated: animated); tableView.setEditing(editing, animated: animated) }
