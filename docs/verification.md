@@ -1,5 +1,70 @@
 # Verification
 
+## Independent RWKV comparison — 2026-10-27
+
+The app already pinned the newest `JSchoreels/anki` main revision,
+`96af4ca9d214e71743b1186fd2ceab1a7e7e3f32`; GitHub main and all five model
+hashes were checked again before comparison. No newer main commits required
+importing. App source `4cb2621226abce0882c4b5801abeb988a348880d` fixes differences
+found by executing that original fork against the shipping Swift collection API.
+
+**All 840 synthetic differential cases passed:** 20,115 review preparations,
+20,093 answers and 100,553 comparisons. The matrix crosses five models
+(Legacy, SM36, SM40v2, SM55, SM56), four recurrent precisions (F32, INT8, INT4,
+mixed card INT4/note INT8), Instant/Curve/both, and fourteen scenarios:
+standard, mixed presets, refresh every three answers, undo, redo, reopen,
+next-day reopening, FSRS 4/5/7, dynamic-retention configuration, **active FSRS 7
+dynamic retention**, dynamic preset replay and disabled grade ordering.
+The active-retention flag was asserted in all sixty corresponding cases.
+FSRS 6 is the standard fallback in the other scenarios.
+
+The independent reference builds the original Python/Rust binding and executes
+the fork's actual reviewer fetch, empty-queue recovery, post-answer refresh,
+prediction, answer metadata, warmup and undo/redo reconciliation methods.
+Window drawing is omitted and GUI task dispatch runs synchronously. The app
+peer uses `AnkiCollection`, shared with iOS, on Linux. Comparisons include the
+displayed card, counts, complete candidate scores/order, all answer states,
+neural heads/intervals, card/note/revlog/grave rows, and all recurrent-module
+hashes. Floats use absolute/relative tolerance `1e-5`; integers, strings and
+recurrent-byte hashes compare exactly. This does not test asynchronous GUI
+races or establish desktop/iOS visual equality.
+
+This caught and fixed learning-card prediction outside the review candidate
+set, learn-ahead elapsed-time inputs, Curve S90 in review/relearning states,
+displayed-card preservation during deferred refresh, candidate input caching,
+refresh cadence, undo/redo counters and temporary same-day context, and the
+distinction between candidate eligibility targets and displayed per-grade
+dynamic retention.
+
+Every reference and app process passed a mandatory namespace audit: live user
+Anki data hidden, installed launcher masked, host files read-only and host
+network unreachable. Profiles/clocks are private temporary fixtures. Local
+Anki was neither stopped nor opened by these tests. No private collection,
+media or process logs are included in the
+[sanitized case report](evidence/rwkv-differential-2026-10-27.json).
+See [reproduction instructions](../tools/comparison/README.md).
+
+The local core suite also passed **56 tests**, with four optional private/server
+fixtures skipped. Both sync tests passed separately inside an audited private
+network namespace. The added regression reproduced stale candidates after
+incoming reviews and full download, then passed after clearing reviewer-local
+state on the fork's sync-change signal and full replacement. The existing FSRS-6
+fallback survives both operations. The
+[first iOS run](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40558532429)
+passed the iOS build, core/vector tests, separate two-client sync test and all
+nine UI tests at `463dbf3`. The
+[matrix-source iOS run](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40560840333)
+targets `4cb2621` and is tracked separately.
+
+The matrix ran at `4cb2621`; the subsequent sync-only cache invalidation is
+covered by the separate server regression. This establishes the named
+synthetic RWKV scenarios. Filtered RWKV decks,
+custom scheduling scripts, candidate-refresh/exit-refresh modes, external
+Python add-ons, large-profile/device latency and live AnkiWeb acceptance
+remain outside this result, as do continuous midnight UI transitions and
+historical preset migrations/complex overlay rules. See the
+[compatibility inventory](compatibility.md).
+
 ## Real Anki collection path
 
 The [iPhone simulator run](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40139231893) passed at source revision `b9cd43cfe3c34f2fe8db68deed73002b6fe7f699` on 2026-10-24 UTC. The checked-in Xcode project and shared scheme match that generated build byte for byte.
@@ -25,7 +90,7 @@ A separate replay smoke check warmed the full canonical history and produced **2
 
 ### Acceptance limits
 
-**Full Anki/fork feature parity is not established.** Live AnkiWeb, exact desktop RWKV ordering across mixed presets, filtered RWKV reviews, custom scheduling scripts, advanced native tools and broader device/format cases remain outstanding. Model and state precision are local profile settings and must match desktop for comparable RWKV behavior. See the [compatibility inventory](compatibility.md).
+**Full Anki/fork feature parity is not established.** The synthetic desktop RWKV matrix above now covers mixed presets and the named lifecycle cases. Live AnkiWeb, filtered RWKV reviews, custom scheduling scripts, advanced native tools and broader real-collection/device/format cases remain outstanding. Model and precision are local profile settings and must match desktop for comparable RWKV behavior. See the [compatibility inventory](compatibility.md).
 
 The pinned backend also has unresolved sync races: conflicting note edits within one second can diverge, and a mutation sharing a millisecond with sync completion can be missed because collection mtimes compare equal. Normal-flow tests explicitly separate timestamps; passing them does not certify these races are fixed.
 

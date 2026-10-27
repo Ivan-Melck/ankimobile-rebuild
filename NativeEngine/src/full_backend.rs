@@ -121,6 +121,15 @@ fn execute(call: Call) -> Result<Value, String> {
             {
                 super::collection_rwkv::release(call.handle);
             }
+            if name == "BackendSyncService"
+                && (method_name == "FullUploadOrDownload"
+                    || (method_name == "SyncCollection"
+                        && result["remoteCollectionChanged"] == true))
+            {
+                // Sync does not return OpChanges. Incoming history/objects or
+                // a replaced collection invalidate all reviewer-local state.
+                super::collection_rwkv::release(call.handle);
+            }
             Ok(result)
         }
         #[cfg(feature = "validation-comparison")]

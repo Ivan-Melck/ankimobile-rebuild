@@ -66,6 +66,14 @@ After `swift build --build-tests`, a built test executable can also run through
 `python3 tools/comparison/isolated_command.py /absolute/path/to/test-executable`.
 This uses the same audit and private profile with real wall time.
 
+On Linux, `scripts/test-sync.sh` builds the synthetic server and clients and
+then runs them automatically in one audited private network namespace. Its
+two fake accounts test ordinary sync/media behavior and RWKV candidate-cache
+invalidation after incoming reviews and full collection replacement. It
+requires the private reference Python environment created above. The server
+is reachable only by its test clients; it cannot reach the host's Anki or
+AnkiWeb. Hosted macOS CI uses disposable accounts/profiles on its fresh runner.
+
 The diagnostics are gated by Cargo's `validation-comparison` feature and
 are absent from shipping builds. This is a collection/reviewer comparison,
 not proof of complete desktop GUI, add-on, sync-service or iOS UI parity.

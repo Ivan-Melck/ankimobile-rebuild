@@ -272,6 +272,60 @@ final class AnkiCompatibilityTests: XCTestCase {
         }
     }
 
+    func testRWKVSyncRefreshesCachedCandidates() throws {
+        guard let endpoint = ProcessInfo.processInfo.environment["ANKI_SYNC_TEST_ENDPOINT"] else { throw XCTSkip("Run the isolated fork sync fixture.") }
+        let a = try AnkiCollection(directory: directory()), b = try AnkiCollection(directory: directory())
+        let basic = try XCTUnwrap(a.notetypes().first { $0["name"].string == "Basic" })
+        _ = try a.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Cached client", "Synthetic sync fixture"])
+        let settings = try a.deckConfiguration("1")
+        var config = settings.selected, algorithm = config["config"], all = settings.all
+        algorithm["rwkvReviewInstantOrderEnabled"] = .bool(true)
+        algorithm["fsrsVersion"] = .string("FSRS_VERSION_SIX")
+        algorithm["rwkvReviewMinimumReviewsPerDay"] = .number(4)
+        algorithm["rwkvReviewMinInterveningReviews"] = .number(0)
+        config["config"] = algorithm; all["fsrs"] = .bool(true); all["fsrsShortTermWithStepsEnabled"] = .bool(true)
+        try a.saveDeckConfiguration(config, deckID: "1", original: all)
+        let authA = try a.login(username: "rwkv-compatibility", password: "fixture-password", endpoint: endpoint)
+        let initial = try a.sync(auth: authA)
+        try a.fullSync(auth: authA, upload: true, serverUSN: .number(Double(initial["serverMediaUsn"].int)))
+        try finishMedia(a)
+        let authB = try b.login(username: "rwkv-compatibility", password: "fixture-password", endpoint: endpoint)
+        let download = try b.sync(auth: authB)
+        try b.fullSync(auth: authB, upload: false, serverUSN: .number(Double(download["serverMediaUsn"].int)))
+        try finishMedia(b)
+        _ = try b.prepareReview(deckID: "1") // Populate this client's candidate cache.
+        Thread.sleep(forTimeInterval: 0.01)
+        let nid = try a.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Arrived from another client", "Reviewed before sync"])
+        let cid = try XCTUnwrap(a.search("nid:\(nid)").first)
+        try a.backend.call("Scheduler", "RebuildQueuedCardsPreservingCurrentCard", ["cid":.string(cid)])
+        let card = try XCTUnwrap(a.queuedCards()["cards"].array.first)
+        XCTAssertEqual(card["card"]["id"].string, cid)
+        try a.answer(queued: card, rating: 4, seconds: 3)
+        _ = try a.sync(auth: authA)
+        let received = try b.sync(auth: authB)
+        XCTAssertTrue(received["remoteCollectionChanged"].bool)
+        _ = try b.prepareReview(deckID: "1")
+        XCTAssertNotEqual(try b.backend.call("Scheduler", "GetRwkvRetrievabilityScore", ["cid":.string(cid)])["retrievability"], .null,
+                          "Downloaded reviews must invalidate a populated candidate cache")
+        XCTAssertEqual(try b.getCard(cid)["reps"].int, 1)
+        XCTAssertEqual(try b.deckConfiguration("1").selected["config"]["fsrsVersion"].string, "FSRS_VERSION_SIX")
+        try finishMedia(a); try finishMedia(b)
+        Thread.sleep(forTimeInterval: 0.01)
+        let fullNid = try a.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Full download after cached review", "Synthetic"])
+        let fullCid = try XCTUnwrap(a.search("nid:\(fullNid)").first)
+        try a.backend.call("Scheduler", "RebuildQueuedCardsPreservingCurrentCard", ["cid":.string(fullCid)])
+        try a.answer(queued: XCTUnwrap(a.queuedCards()["cards"].array.first), rating: 4, seconds: 3)
+        try a.fullSync(auth: authA, upload: true)
+        try finishMedia(a)
+        try b.fullSync(auth: authB, upload: false)
+        try finishMedia(b)
+        _ = try b.prepareReview(deckID: "1")
+        XCTAssertNotEqual(try b.backend.call("Scheduler", "GetRwkvRetrievabilityScore", ["cid":.string(fullCid)])["retrievability"], .null,
+                          "Full downloads must discard caches from the replaced collection")
+        XCTAssertEqual(try b.deckConfiguration("1").selected["config"]["fsrsVersion"].string, "FSRS_VERSION_SIX")
+        try a.close(); try b.close()
+    }
+
     func testImportedRWKVInstantUsesCanonicalHistoryAndSurvivesUndo() throws {
         let col = try AnkiCollection(directory: directory())
         let basic = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Basic" })
