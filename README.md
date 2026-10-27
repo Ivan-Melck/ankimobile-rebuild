@@ -2,7 +2,17 @@
 
 An editable native iOS flashcard app reconstructed from static analysis of the supplied AnkiMobile 25.09 IPA with [REA](https://github.com/morluto/rea), Ghidra, and Apple's compiled resource metadata.
 
-**Full compatibility is still being validated.** The default app now uses the complete shared backend from [JSchoreels/anki](https://github.com/JSchoreels/anki) for real Anki SQLite collections, package import/export, scheduling, rendering and sync. The native UI is editable UIKit. See the [compatibility inventory and remaining gaps](docs/compatibility.md); backend support does not establish complete native UI or desktop add-on parity. See [fidelity and evidence](docs/analysis.md).
+The default app uses the complete shared backend from [JSchoreels/anki](https://github.com/JSchoreels/anki) for real Anki SQLite collections, package import/export, scheduling, rendering and sync. The native UI is editable UIKit. **Full feature compatibility and exact original-app visual fidelity are not established.** See the [compatibility inventory](docs/compatibility.md) and [fidelity evidence](docs/analysis.md).
+
+## Current status — 2026-10-27
+
+- Backend pin: `96af4ca9d214e71743b1186fd2ceab1a7e7e3f32`, verified against fork main on 2026-10-27. All five bundled model hashes matched the fork.
+- **840 synthetic desktop/Swift RWKV cases passed**, covering five models, four precisions, Instant/Curve/both and fourteen scenarios: 20,093 answers and 100,553 comparisons, including exact recurrent-state hashes.
+- [Final code CI](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40565026742) passed at `db7314a`: 56 core tests (four optional skips), neural vectors, both server sync tests, the iOS build and all nine iPhone UI tests.
+- Incoming sync changes and full downloads invalidate cached RWKV state; the regression verifies newly downloaded candidates and the retained FSRS-6 fallback.
+- The **local test environment has been deleted**: private reference Python environment, generated reference/Rust/Swift builds, temporary test collections and logs. Source, test scripts, checked-in evidence and static-analysis tools remain. The installed Anki and its data were not modified.
+
+These are recorded results, not tests rerun after cleanup. Reproduction commands below recreate generated environments only when deliberately invoked. Remaining gaps include filtered RWKV reviews, custom scheduling scripts, desktop add-ons, some refresh modes and broader device/live-AnkiWeb acceptance. [Verification and scope](docs/verification.md).
 
 ## Build for iPhone or iPad
 
@@ -38,7 +48,7 @@ Select the `Flashcards` scheme and an iPhone/iPad simulator, then Run. For a phy
 
 The original JSON-based local reconstruction remains under Collection Tools → Original Local Collection. Its Study Plan, simulation, calibration and CSV workflows are separate from real Anki collections. They are not automatically applied to imported Anki data. No existing JSON collection is replaced or silently migrated.
 
-A private collection test passed a round trip of 8,478 cards, 6,402 notes, 10 note types, 13,876 media files and 31,230 canonical history rows. Personal data is excluded from the repository and public CI. This checks preservation; it does not certify every review interaction. [Verification details](docs/verification.md).
+A historical private collection test passed a round trip of 8,478 cards, 6,402 notes, 10 note types, 13,876 media files and 31,230 canonical history rows. That disposable fixture is not retained locally or published. This checks preservation; it does not certify every review interaction. [Verification details](docs/verification.md).
 
 ## Make changes
 
@@ -56,7 +66,7 @@ A private collection test passed a round trip of 8,478 cards, 6,402 notes, 10 no
 | Legacy JSON reconstruction | `CollectionStore.swift`, `StudyPlanning.swift`, `NativeEngine/src/lib.rs` |
 | Build settings and targets | `project.yml`, `scripts/build-native.sh` |
 
-The portable core is a standalone Swift package with no UIKit dependency:
+The portable core is a standalone Swift package with no UIKit dependency. On a dedicated Mac or the hosted CI runner:
 
 ```sh
 scripts/build-native.sh
@@ -64,6 +74,8 @@ swift test
 scripts/test-sync.sh
 cargo test --release --locked --manifest-path NativeEngine/Cargo.toml --features validation --test parity
 ```
+
+On this Linux workstation, use the [audited comparison and test workflow](tools/comparison/README.md), including its rebuild prerequisites. `scripts/test-sync.sh` automatically confines its Linux server/clients to a private namespace, but requires the reference Python environment to have been rebuilt first. Do not run the fork against the installed desktop profile.
 
 See [architecture](docs/architecture.md), [compatibility](docs/compatibility.md), [analysis and fidelity](docs/analysis.md), [verification](docs/verification.md), and [local REA workflow](docs/reproduce-analysis.md). No supplied IPA, original executable, extracted assets, recovered proprietary code or personal collection data is published.
 
@@ -73,7 +85,7 @@ The native collection path includes real Anki deck options, typed answers and im
 
 <img src="docs/screenshots/native-options.png" width="230" alt="Native Anki deck options"> <img src="docs/screenshots/native-typed-answer.png" width="230" alt="Native Anki typed-answer review"> <img src="docs/screenshots/native-review.png" width="230" alt="Native Anki card review">
 
-The fork integration adds these native planning screens. [Verification and test results](docs/verification.md) include the exact tested revision and remaining runtime limits.
+The separate legacy JSON collection provides these planning screens; they do not schedule imported Anki collections. [Verification and test results](docs/verification.md) identify the tested revisions and capture dates.
 
 <img src="docs/screenshots/study-plan.png" width="230" alt="Study Plan"> <img src="docs/screenshots/retention-comparison.png" width="230" alt="Compare retention against workload"> <img src="docs/screenshots/retention-target.png" width="230" alt="Choose a retention target">
 

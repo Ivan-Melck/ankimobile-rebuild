@@ -1,10 +1,36 @@
 # Anki fork integration
 
-The default app now uses the full fork backend and real Anki collections. See [current compatibility](compatibility.md) and [architecture](architecture.md). The remainder of this page records the earlier **legacy JSON collection** integration, accessible from Collection Tools → Original Local Collection. Its limitations and UI capabilities apply to that path, not to the new Anki collection path.
+The default app uses the full fork backend and real Anki collections. Status is
+recorded as of 2026-10-27; see [current compatibility](compatibility.md),
+[architecture](architecture.md) and [verification](verification.md).
 
 Reference: JSchoreels/anki at `96af4ca9d214e71743b1186fd2ceab1a7e7e3f32`.
 
-## Native workflows
+## Current real-Anki integration
+
+- Shared SQLite storage, package import/export, arbitrary note fields/templates,
+  backend search/rendering, scheduling and sync; native UIKit screens.
+- Actual fork RWKV inference with canonical replay, five models and four state
+  precisions. Instant retains the selected FSRS fallback rather than forcing FSRS 7.
+- Learning/relearning inputs, Curve S90, deferred queue refresh, candidate
+  caching and undo/redo matched the original in 840 synthetic cases, including
+  active FSRS-7 dynamic retention and mixed presets.
+- Incoming normal-sync changes and full transfers clear reviewer-local caches;
+  separate server regressions verify newly downloaded candidates and FSRS 6.
+- Final code `db7314a` passed 56 core checks (four optional skips), both sync
+  tests, neural vectors, the iOS build and nine UI tests.
+
+Filtered RWKV, custom scheduling scripts, some refresh modes and desktop Python
+add-ons remain unsupported or outside the acceptance scope. Full parity is not
+established. The local test environment/builds and temporary fixtures/logs have
+been deleted; source, scripts and sanitized evidence remain.
+
+## Historical legacy JSON workflows
+
+The following features belong to Collection Tools → Original Local Collection.
+Its simulations, rules and calibration do not schedule imported Anki data.
+
+### Legacy workflow inventory
 
 | Fork capability | iOS integration |
 | --- | --- |
@@ -23,17 +49,17 @@ Reference: JSchoreels/anki at `96af4ca9d214e71743b1186fd2ceab1a7e7e3f32`.
 | Card predictions | Reviewer → Study Actions → Card Insights; recall, stability, difficulty where available, and four raw answer intervals |
 | Numeric and field searches | `prop:ivl>=10`, `prop:reps`, `prop:lapses`, `prop:ease`, `prop:due`, `front:`, `back:`, `Front>5`, `Back:[1,10)`, quoting and escaped literal comparisons |
 
-## Deliberate platform boundaries and remaining differences
+### Legacy platform boundaries and remaining differences
 
 This is a native mobile integration of the fork’s scheduling features, not a port of its complete desktop application. Qt webviews, desktop add-on execution, installer/update mechanisms, Python packaging, and platform-specific desktop optimizations do not belong in the iOS UI.
 
-The fork’s collection-wide SQLite cache/checkpoint management is replaced by a rebuildable in-process inference cache over the rebuild’s JSON review history. No opaque neural state is required in backups. Answers record the preset chosen before card properties change, preserving dynamic preset routing on replay. Switching models, restoring a backup or undoing an answer replays the recorded history. The cache is derived; backups retain source reviews, presets, rules and FSRS parameters. Historic imported Anki collections are not supported by this rebuild yet; CSV imports start new cards. Existing local backups without scheduling fields keep Classic scheduling. Fresh app collections start with FSRS-7.
+In the legacy path, the fork’s collection-wide SQLite cache/checkpoint management is replaced by a rebuildable in-process inference cache over JSON review history. Answers record the preset chosen before card properties change. Switching models, restoring a backup or undoing an answer replays that history; backups retain reviews, presets, rules and FSRS parameters. This JSON path does not import historic Anki collections; use the default real-Anki profile/package workflow for those. Legacy CSV imports start new cards, old JSON backups without scheduling fields keep Classic, and new legacy collections default to FSRS 7.
 
 Forecasts compare **uniform retention** on the selected deck. They respect deck size, current memory history, maximum interval and daily limits. Conditional rules, repeat-spacing constraints and learning placement are not modeled by the forecast. The engine’s workload simulation uses its standard review-time/rating assumptions rather than fitted user timing. The iOS retention comparison does not expose every desktop simulator sweep, cost-ADR training, advanced classifier option, graph, diagnostic or optimizer hyperparameter. These are not claimed as implemented. Estimates are labeled as estimates in the UI.
 
-RWKV Instant’s fallback due-date calculator is fixed to FSRS-7 in this implementation. Recall and relative-overdueness ordering require a memory model. Classic preserves the original rebuild scheduler; model-only controls are hidden. The local search grammar remains an explicit subset of Anki’s full search language, limited to the two editable note fields and documented properties.
+Only the legacy JSON Instant implementation fixes the fallback to FSRS 7; the current real-Anki path preserves its selected fallback. Legacy recall/relative-overdueness ordering require a memory model, Classic retains the original rebuild scheduler, and the two-field search grammar is a subset of Anki search. The default real-Anki browser uses the full pinned backend parser.
 
-## Architecture / modification points
+### Legacy modification points
 
 - `Sources/FlashcardsCore/StudyPlanning.swift`: typed configuration, shared presets, conditional rules, JSON bridge, scheduling policy.
 - `NativeEngine/src/lib.rs`: C ABI, history conversion, model loading, prediction, simulation, evaluation and fitting. Engine exceptions are returned as JSON errors.
@@ -44,6 +70,9 @@ RWKV Instant’s fallback due-date calculator is fixed to FSRS-7 in this impleme
 
 ## Build
 
-Install Rust with rustup, Swift and (on macOS) Xcode + XcodeGen. Run `scripts/build-native.sh && swift test`. On macOS, `xcodegen generate`, then build the Flashcards scheme. Rust iOS targets are installed automatically by the build script. Model files are SwiftPM resources, so the same weights ship in host tests and the iOS app.
+Follow the [main build instructions](../README.md#build-for-iphone-or-ipad).
+For Linux tests, rebuild and use the [audited test workflow](../tools/comparison/README.md);
+prior local environments/binaries no longer exist. Rust iOS targets are installed
+by the build script. Model files are SwiftPM resources shared by host tests and iOS.
 
 The complete derivative source is public in this repository. See `THIRD_PARTY_NOTICES.md` and `LICENSE` for provenance and licensing.

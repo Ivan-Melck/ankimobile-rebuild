@@ -1,5 +1,12 @@
 # Native metadata findings
 
+This is the historical static-analysis record of the supplied IPA, not a current
+feature checklist. The present app uses the public fork's real Anki backend;
+see [compatibility](compatibility.md) and [verification](verification.md) for
+the passing 840-case comparison and final iOS results. Local test environments
+were subsequently deleted; the ignored static-analysis tools/evidence remain
+separate from that cleanup. Original-app visual parity is still unverified.
+
 The independent byte reader in `scripts/inspect_objc.py` decoded all 150 entries in the supplied binary's Objective-C class list without a class-level parsing error. It found 626 instance-method records. These are runtime-visible Objective-C/Swift bridge methods, not an inventory of every Swift or Rust function. The binary has additional native code outside this list.
 
 The complete class/method address report is in [native-inventory.json](native-inventory.json). It contains factual metadata, not original executable bytes or pseudocode.
@@ -57,7 +64,7 @@ A second focused pass follows editor, browser, and web-message methods into thei
 
 Selected evidence identifiers: save helper `ev_5172da2d54b370358a894271dea93dabd4ad7e29fe7060e74864b2dfcc343d70`; browser selection `ev_7cb181f5ce28821c455699dec4deb6353c10c340ddfbe28f04e99a58c6d9adfc`; JSON message handling `ev_9c07600eade2760599b94e62de96c70161b7825ad485b223cfc6d431419866af`.
 
-This establishes that the original editor is a rich web-backed editing surface controlled by native actions. The rebuild's UITextView fields accept authored HTML and support the implemented note types, but do not reproduce that rich toolbar, DOM selection, media insertion, or JSON bridge. The current browser likewise implements ordinary single-card editing/search and swipe actions, while the original has a separate bulk-selection mode. These are specific behavioral gaps, not cosmetic differences.
+This establishes that the original editor is a rich web-backed editing surface controlled by native actions. The current real-Anki editor preserves arbitrary note fields/types and accepts authored HTML in UITextView fields, but does not reproduce that rich toolbar, DOM selection, media insertion, or editor JSON bridge. The browser uses the full backend search engine with single-card editing and swipe actions; the original's bulk-selection mode remains unported. These are behavioral gaps, not cosmetic differences.
 
 The save completion at `0x10015876c` schedules another MainActor task. The storage commit itself was not traced through all async continuations, so the native save trace must not be treated as evidence of the original app's transaction guarantees.
 

@@ -6,6 +6,13 @@ not a claim of compatibility with every past or future Anki release or add-on.
 **Full feature parity is not yet established.** Data preservation, scheduling,
 sync, and native UI behavior have separate acceptance checks.
 
+Status recorded on 2026-10-27: the 840-case synthetic matrix passed at
+`4cb2621`, and source `db7314a` passed final iOS/core/vector checks, both sync
+tests and nine UI flows. The local reference virtual environment, generated
+builds and temporary fixtures/logs were then deleted at the user's request.
+Source, scripts and the sanitized report remain; tests have not been rerun
+after cleanup. Reproduction requires rebuilding the isolated environment.
+
 Desktop comparison runs are isolated from the installed Anki. Both the original
 fork and the Swift collection driver execute in audited Linux filesystem,
 network and process namespaces with private temporary profiles. The live user
@@ -46,14 +53,16 @@ Keep personal fixtures outside the public repository. Never open a live desktop
 profile with the mobile backend. `snapshot-anki.py` copies source database/WAL
 bytes using read-only file access, checks for concurrent changes, then recovers
 SQLite on the copy. It excludes preferences, sync credentials and cache DBs.
-It rejects media symlinks. If the source changes during capture, close Anki
-and retry. No source database connection or source checkpoint is performed.
+It rejects media symlinks. If the source changes during capture, abort or retry
+later/use an existing authorized backup; do not stop the user's installed Anki
+to obtain a fixture. No source database connection or checkpoint is performed.
 
-```sh
-python3 scripts/snapshot-anki.py /path/to/Anki2/Profile /private/path/new-snapshot
-ANKI_COMPAT_COLLECTION_DIR=/private/path/new-snapshot \
-  swift test --filter AnkiCompatibilityTests/testPrivateCollectionCopyRoundTrip
-```
+The historical private round-trip result is recorded in [verification](verification.md);
+that disposable fixture is no longer retained. The public comparison accepts
+only synthetic data. Its Linux test wrapper deliberately omits private-fixture
+environment variables, so it does not run the optional private tests. A future
+private run requires an explicitly configured confined working copy; never
+expose the live home/profile or bypass the isolation audit to enable it.
 
 The test makes another disposable working copy. It logs aggregate counts only;
 no note contents, deck names, credentials or private media enter public CI.
@@ -63,12 +72,12 @@ that command can repair/rewrite notes and should be an explicit user action.
 
 ## Reproducible checks
 
-```sh
-scripts/build-native.sh
-swift test
-scripts/test-sync.sh
-cargo test --release --locked --manifest-path NativeEngine/Cargo.toml --features validation --test parity
-```
+Use the [comparison README](../tools/comparison/README.md) to rebuild the removed
+Linux reference environment, run the full matrix and execute built tests in
+the namespace sandbox. `scripts/test-sync.sh` automatically confines Linux
+runtime processes but depends on that reference Python environment. The
+[iOS workflow](../.github/workflows/ios.yml) records the dedicated macOS build,
+vector, core, server-sync and simulator checks.
 
 The public simulator workflow exercises synthetic fixtures only. Passing its
 tests establishes the specific tested flows, not every row in this inventory.

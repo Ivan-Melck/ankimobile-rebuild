@@ -20,3 +20,17 @@ The user requires the experimental fork to remain isolated from local Anki.
   media, logs containing note contents, or credentials to the public repo/CI.
 
 See `tools/comparison/README.md` for the isolation and verification workflow.
+
+## Current validation and cleanup state
+
+Recorded on 2026-10-27: the 840-case synthetic matrix passed; iOS source
+`db7314a998b705db47f50c27184d8497751b39eb` passed core/vector checks, both
+sync tests and nine UI tests. See `docs/verification.md` for exact scope and
+remaining gaps; do not imply universal Anki/fork compatibility.
+
+At the user's request, the private fork environment, generated builds and
+temporary test collections/logs were deleted after validation. Source, scripts,
+sanitized evidence and static-analysis tools remain. Documentation/review work
+must not recreate the test environment or access the installed Anki. If future
+implementation requires tests, explicitly describe the rebuild and retain the
+mandatory runtime isolation; never assume prior binaries or fixtures exist.

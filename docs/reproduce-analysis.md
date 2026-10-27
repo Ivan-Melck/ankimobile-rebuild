@@ -1,6 +1,11 @@
 # Reproduce local analysis
 
-The original artifact and RE tools remain local and ignored by Git. Supply your own authorized IPA; no original files are downloaded by the app or CI.
+The original artifact and RE tools remain local and ignored by Git. They were
+not part of the deleted fork test environment. This page describes static IPA
+analysis, not RWKV comparison or simulator validation. For the recorded results
+see [verification](verification.md); to deliberately recreate the removed fork
+environment see [comparison reproduction](../tools/comparison/README.md).
+Supply your own authorized IPA; no original files are downloaded by the app or CI.
 
 1. Record the IPA/executable hash, extract the IPA to `analysis/extracted/`, and identify its Mach-O executable using the app Info.plist.
 2. Install the official [REA package](https://github.com/morluto/rea) locally in `.tools/` (the investigation used `rea-agents@6.7.0`). Follow REA's Node/Java/ps prerequisites and use a supported native engine. This session used Ghidra 12.1.4; 12.2 was rejected by REA 6.7.0.

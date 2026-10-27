@@ -4,6 +4,14 @@ The checked-in JavaScript is generated from the pinned public Anki fork and
 MathJax 3.2.2 (the version in its lockfile). Native iOS builds use those assets
 without Node or a network connection.
 
+Status recorded on 2026-10-27: the final iOS run passed all nine UI flows,
+including the reviewer fixtures described below. See
+[verification](../../docs/verification.md) for the exact source and scope;
+those checks do not establish visual equality with the original IPA.
+The local fork test environment/builds were deleted after validation. These
+checked-in assets, adapters and package lock remain; rebuilding them is
+separate from recreating the [isolated backend tests](../comparison/README.md).
+
 To rebuild after changing the adapter or updating the pinned sources:
 
 ```sh
