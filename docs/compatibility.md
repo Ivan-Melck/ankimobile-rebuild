@@ -6,6 +6,14 @@ not a claim of compatibility with every past or future Anki release or add-on.
 **Full feature parity is not yet established.** Data preservation, scheduling,
 sync, and native UI behavior have separate acceptance checks.
 
+Desktop comparison runs are isolated from the installed Anki. Both the original
+fork and the Swift collection driver execute in audited Linux filesystem,
+network and process namespaces with private temporary profiles. The live user
+home is hidden and host files are read-only. The reference uses its own build
+and Python virtual environment; it is not installed over local Anki. The
+comparison harness accepts only generated synthetic fixtures. See the
+[comparison instructions](../tools/comparison/README.md).
+
 ## Acceptance inventory
 
 | Capability | Implementation and evidence | Remaining acceptance work |

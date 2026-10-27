@@ -193,13 +193,14 @@ extension AnkiCollection {
             }
             if let encoded = try? backend.call("Config", "GetConfigJson", ["val": .string("rwkvDynamicPresetReplay")])["json"].string,
                let data = Data(base64Encoded: encoded), let setting = try? JSONDecoder().decode(Bool.self, from: data) { dynamicReplay = setting }
-            let prepared = try backend.perform("rwkv_prepare", input: ["deckId": .string(deckID), "model": .string(model), "path": .string(path), "precision": .string(precision), "dynamicPresetReplay": .bool(dynamicReplay)])
+            let prepared = try backend.perform("rwkv_prepare", input: ["deckId": .string(deckID), "model": .string(model), "path": .string(path), "precision": .string(precision), "dynamicPresetReplay": .bool(dynamicReplay), "configuration": configs["allConfig"]])
             predictions = prepared["predictions"]; preparedQueue = prepared["queue"]
         }
         var queue = try preparedQueue ?? queuedCards()
         var cards = queue["cards"].array
         for index in cards.indices {
             let card = cards[index]["card"], prediction = predictions[card["id"].string]
+            cards[index]["states"]["current"]["customData"] = .string(card["customData"].string)
             let deck = try backend.call("Decks", "GetDeck", ["did": card["deckId"]])
             let actualDeck = deck["normal"] == .null ? try backend.call("Decks", "GetDeck", ["did": card["originalDeckId"]]) : deck
             let config = try backend.call("DeckConfig", "GetDeckConfig", ["dcid": actualDeck["normal"]["configId"]])["config"]
@@ -218,6 +219,21 @@ extension AnkiCollection {
                 var input: [String: AnkiValue] = ["cardId": card["id"]]
                 for (i, name) in ["again", "hard", "good", "easy"].enumerated() where prediction["intervals"].array.indices.contains(i) { input[name] = prediction["intervals"].array[i] }
                 cards[index]["states"] = try backend.call("Scheduler", "SchedulingStatesWithIntervals", input)
+                // Desktop applies the neural S90 to the rebuilt review states,
+                // including the review component of a relearning state.
+                for (i, name) in ["again", "hard", "good", "easy"].enumerated() where prediction["s90s"].array.indices.contains(i) {
+                    let s90 = prediction["s90s"].array[i]
+                    guard s90 != .null, prediction["intervals"].array.indices.contains(i), prediction["intervals"].array[i] != .null else { continue }
+                    var state = cards[index]["states"][name]
+                    if state["normal"]["review"] != .null {
+                        if state["normal"]["review"]["memoryState"]["difficulty"].double <= 0 { state["normal"]["review"]["memoryState"]["difficulty"] = .number(5) }
+                        state["normal"]["review"]["memoryState"]["stability"] = s90
+                    } else if state["normal"]["relearning"]["review"] != .null {
+                        if state["normal"]["relearning"]["review"]["memoryState"]["difficulty"].double <= 0 { state["normal"]["relearning"]["review"]["memoryState"]["difficulty"] = .number(5) }
+                        state["normal"]["relearning"]["review"]["memoryState"]["stability"] = s90
+                    }
+                    cards[index]["states"][name] = state
+                }
             }
         }
         queue["cards"] = .array(cards); queue["fsrsEnabled"] = configs["fsrs"]; return queue

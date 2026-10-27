@@ -317,6 +317,8 @@ final class AnkiCompatibilityTests: XCTestCase {
         let queued = try XCTUnwrap(col.prepareReview(deckID: "1")["cards"].array.first)
         XCTAssertTrue(queued["rwkvPrediction"]["curveEnabled"].bool)
         XCTAssertGreaterThan(queued["rwkvPrediction"]["s90s"].array[3].double, 0)
+        XCTAssertEqual(queued["states"]["easy"]["normal"]["review"]["memoryState"]["stability"].double,
+                       queued["rwkvPrediction"]["s90s"].array[3].double, accuracy: 0.00001)
         try col.answer(queued: queued, rating: 4, seconds: 4)
         let logs = try col.backend.call("Stats", "GetReviewLogs", ["cid": queued["card"]["id"]])["entries"].array
         XCTAssertEqual(logs.count, 1)
@@ -324,6 +326,24 @@ final class AnkiCompatibilityTests: XCTestCase {
         let imported = try AnkiCollection.importFile(package, intoNewDirectory: directory(false))
         XCTAssertEqual(try imported.backend.call("Stats", "GetReviewLogs", ["cid": queued["card"]["id"]])["entries"], .array(logs))
         try col.close(); try imported.close()
+    }
+
+    func testRWKVPredictsDisplayedLearningCardOutsideReviewCandidates() throws {
+        let col = try AnkiCollection(directory: directory())
+        let basic = try XCTUnwrap(col.notetypes().first { $0["name"].string == "Basic" })
+        _ = try col.addNote(notetypeID: basic["id"].string, deckID: "1", fields: ["Learning", "Context"])
+        let settings = try col.deckConfiguration("1")
+        var config = settings.selected, algorithm = config["config"], all = settings.all
+        algorithm["rwkvReviewEnabled"] = .bool(true)
+        config["config"] = algorithm; all["fsrs"] = .bool(true); all["fsrsShortTermWithStepsEnabled"] = .bool(true)
+        try col.saveDeckConfiguration(config, deckID: "1", original: all)
+        let first = try XCTUnwrap(col.prepareReview(deckID: "1")["cards"].array.first)
+        try col.answer(queued: first, rating: 1, seconds: 3)
+        let learning = try XCTUnwrap(col.prepareReview(deckID: "1")["cards"].array.first)
+        XCTAssertNotEqual(learning["states"]["current"]["normal"]["learning"], .null)
+        XCTAssertNotEqual(learning["rwkvPrediction"]["retrievability"], .null)
+        XCTAssertTrue(learning["rwkvPrediction"]["curveEnabled"].bool)
+        try col.close()
     }
 
     func testUnsupportedSchedulingScriptPausesBeforeAnyReviewWrites() throws {

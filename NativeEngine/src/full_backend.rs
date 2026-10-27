@@ -94,12 +94,58 @@ fn execute(call: Call) -> Result<Value, String> {
             if name == "BackendSchedulerService" && method_name == "AnswerCard" {
                 super::collection_rwkv::record_answer(call.handle, &backend, &call.input);
             }
+            if name == "BackendCollectionService" && ["Undo", "Redo"].contains(&method_name) {
+                super::collection_rwkv::reconcile_undo(call.handle, &result, method_name == "Redo");
+            }
+            let changes = result
+                .get("changes")
+                .filter(|v| v.is_object())
+                .unwrap_or(&result);
+            if !["AnswerCard", "Undo", "Redo", "SetCurrentDeck"].contains(&method_name)
+                && [
+                    "card",
+                    "note",
+                    "deck",
+                    "notetype",
+                    "config",
+                    "deckConfig",
+                    "studyQueues",
+                ]
+                .iter()
+                .any(|field| changes[*field].as_bool() == Some(true))
+            {
+                super::collection_rwkv::invalidate_candidates(call.handle);
+            }
             if name == "BackendCollectionService"
                 && ["OpenCollection", "CloseCollection"].contains(&method_name)
             {
                 super::collection_rwkv::release(call.handle);
             }
             Ok(result)
+        }
+        #[cfg(feature = "validation-comparison")]
+        "comparison_inspect" => {
+            let backend = BACKENDS
+                .lock()
+                .map_err(|_| "Backend registry unavailable")?
+                .get(&call.handle)
+                .cloned()
+                .ok_or("Backend handle is closed")?;
+            let mut tables = serde_json::Map::new();
+            for table in ["cards", "notes", "revlog", "graves"] {
+                let order = if table == "graves" { "oid,type" } else { "id" };
+                let request = json!({"kind":"query", "sql": format!("select * from {table} order by {order}"), "args": [], "first_row_only": false});
+                let bytes = backend
+                    .run_db_command_bytes(&serde_json::to_vec(&request).unwrap())
+                    .map_err(|_| format!("Unable to inspect comparison table {table}"))?;
+                tables.insert(
+                    table.into(),
+                    serde_json::from_slice::<Value>(&bytes).map_err(|e| e.to_string())?,
+                );
+            }
+            Ok(
+                json!({"tables": tables, "recurrent": super::collection_rwkv::comparison_snapshot(call.handle)}),
+            )
         }
         "rwkv_prepare" => {
             let backend = BACKENDS
