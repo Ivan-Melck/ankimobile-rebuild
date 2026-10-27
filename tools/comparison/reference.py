@@ -71,24 +71,26 @@ class ObservedReviewer(Reviewer):
         self.state = "question"
         self.web_messages = []
         self.bottom = SimpleNamespace(web=SimpleNamespace(eval=self.web_messages.append))
+        self._reps = 0
+        self._previous_card_info = SimpleNamespace(set_card=lambda card: None)
+        self._card_info = SimpleNamespace(set_card=lambda card: None)
 
     def check_timebox(self):
         return False  # Synthetic fixtures do not enable a timebox.
 
-    def nextCard(self):
-        self._review_card_generation += 1
-        self.previous_card = self.card
-        self.card = None; self._v3 = None
-        self._desired_retention_override = None
-        self._rwkv_undo_restored_card_active = False
-        if not self._get_rwkv_undo_restored_card():
-            self._get_next_v3_card()
-        if self.card is not None:
-            self._v3.states = rwkv.update_reviewer_scheduling_states(self._v3.states, self, self.card)
+    # Fetch, empty-queue recovery, refresh policy and undo restoration all run
+    # in the original Reviewer.nextCard. Only rendering/UI blocking is replaced.
+    def _showQuestion(self):
+        self._v3.states = rwkv.update_reviewer_scheduling_states(self._v3.states, self, self.card)
         self.state = "question"
         callbacks = getattr(self, "_rwkv_after_question_shown_callbacks", [])
         self._rwkv_after_question_shown_callbacks = []
         for callback in callbacks: callback()
+
+    def set_review_actions_blocked(self, blocked): pass
+    def _set_review_answer_actions_blocked(self, blocked): pass
+    def _block_answer_actions_after_undo_redraw(self): pass
+    def _cancel_qa_transition(self): pass
 
 
 def proto(value):
@@ -115,6 +117,7 @@ class Reference:
         self.mw.pm = SimpleNamespace(profile={"rwkvModel": request["model"], "rwkvStatePrecision": request["precision"]}, profileFolder=lambda: str(directory))
         self.mw.taskman = CompletedTasks()
         self.mw.state = "review"
+        self.mw.moveToState = lambda state: setattr(self.mw, "state", state)
         self.reviewer = ObservedReviewer(self.mw)
         self.mw.reviewer = self.reviewer
         aqt.mw = self.mw

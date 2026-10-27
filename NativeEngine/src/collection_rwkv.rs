@@ -268,15 +268,6 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
         values.sort_by_key(|(id, _)| *id);
         rows["rows"] = json!(values.into_iter().map(|(_, row)| row).collect::<Vec<_>>());
     }
-    let mut retention_requests = vec![];
-    for (index, row) in rows["rows"].as_array().into_iter().flatten().enumerate() {
-        retention_requests.push(json!({"requestIndex":index,"cardId":row["cardId"],"desiredRetention":row["targetRetention"]}));
-    }
-    let targets = rpc(
-        backend,
-        "FsrsDesiredRetentionForIntervalsBatch",
-        json!({"items":retention_requests}),
-    )?;
     let mut ids = serde_json::Map::new();
     let card_ids = call_backend(
         backend,
@@ -340,24 +331,17 @@ pub fn prepare(handle: u64, backend: &Backend, request: Value) -> Result<Value, 
     }
     let mut scores = vec![];
     let mut predictions = serde_json::Map::new();
-    let targets_by_index: HashMap<i64, &Value> = targets["items"]
-        .as_array()
-        .into_iter()
-        .flatten()
-        .map(|t| (int(&t["requestIndex"]), t))
-        .collect();
-    for (index, row) in rows["rows"].as_array().into_iter().flatten().enumerate() {
+    for row in rows["rows"].as_array().into_iter().flatten() {
         // Desktop candidate scoring uses the backend row's ordinary state.
         // Synthetic same-day state is applied only to the displayed card.
         let mut input = query_input(row, None, None);
-        let target = targets_by_index.get(&(index as i64)).copied();
         let intervening = previous
             .get(&input.card_id)
             .map(|i| history_rows.len() - i - 1)
             .unwrap_or(history_rows.len());
-        let target_retention = target
-            .and_then(|t| t["intervalTargetDesiredRetention"].as_f64())
-            .unwrap_or_else(|| row["targetRetention"].as_f64().unwrap_or(0.9));
+        // Candidate eligibility uses the row's configured target on desktop.
+        // Grade-dependent dynamic targets belong to the displayed card below.
+        let target_retention = row["targetRetention"].as_f64().unwrap_or(0.9);
         input.target_retentions = [Some(target_retention as f32); 4];
         let output = predict(runtime, &input)?;
         scores.push(json!({"cardId":input.card_id.to_string(),"retrievability":output["retrievability"],"interveningReviews":intervening,"targetRetention":target_retention}));

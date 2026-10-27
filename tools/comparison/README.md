@@ -38,7 +38,7 @@ scripts/compare-fork.sh --output /tmp/anki-rwkv-comparison.json
 The default matrix covers five models, four recurrent precisions, Instant,
 Curve and both together, and standard, mixed-preset, refresh-cadence,
 undo, redo, reopen and rollover fixtures. Additional scenarios cover FSRS
-4/5/7, dynamic retention, dynamic preset replay and disabled grade ordering.
+4/5/7, dynamic retention (including active FSRS 7), dynamic preset replay and disabled grade ordering.
 Flags such as `--models sm56 --precisions f32 --steps 24` narrow it.
 `--jobs` controls parallel independent cases (default four); each has separate
 processes, namespaces, profiles and clocks. Both peers use one Rayon thread
@@ -54,9 +54,13 @@ The controlled clock changes only wall time in the two children; monotonic
 clocks remain real. Action timestamps are whole seconds to avoid Python vs
 Foundation fractional-millisecond conversion differences. Measured answer
 durations still include fractions of seconds. Float comparisons use absolute
-and relative tolerance `1e-5`; integer IDs and stored table values are exact.
+and relative tolerance `1e-5`; integers and strings compare exactly, as do
+the hashes of recurrent module bytes.
 The report records the GitHub main check, reference revision, executable hash
 and matching model hashes. Source changes in the reference are rejected.
+`summarize.py INPUT OUTPUT` makes a public report from a completed matrix,
+removing temporary paths and retaining each case's isolation audit. It does
+not include collections, media or process logs.
 
 After `swift build --build-tests`, a built test executable can also run through
 `python3 tools/comparison/isolated_command.py /absolute/path/to/test-executable`.

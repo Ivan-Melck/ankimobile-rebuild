@@ -87,8 +87,8 @@ def compare_case(args, model, precision, mode, scenario):
         result["isolation"]={name:json.loads((work/f"{name}-isolation.json").read_text()) for name in ("reference","app")}
         metadata = reference.call("seed", directory=str(work/"seed"), mode=mode,
             mixed=scenario in ("mixed","dynamic-replay"), dynamic_replay=scenario=="dynamic-replay",
-            refresh=3 if scenario=="refresh" else 1, dynamic=scenario=="dynamic-dr",
-            grade_order=scenario!="grade-order-off",fsrs={"fsrs4":3,"fsrs5":2,"fsrs7":0}.get(scenario,1))
+            refresh=3 if scenario=="refresh" else 1, dynamic=scenario in ("dynamic-dr","dynamic-dr-fsrs7"),
+            grade_order=scenario!="grade-order-off",fsrs={"fsrs4":3,"fsrs5":2,"fsrs7":0,"dynamic-dr-fsrs7":0}.get(scenario,1))
         for side in ("reference", "app"): shutil.copytree(work/"seed",work/side)
         weights = FORK/"qt/aqt/rwkv_inference"/MODELS[model]
         reference.call("open",directory=str(work/"reference"),model=model,precision=precision,weights=str(weights))
@@ -108,6 +108,8 @@ def compare_case(args, model, precision, mode, scenario):
                     app.call("open",directory=str(work/"app"))
             ref = reference.call("prepare",deckId=metadata["deckId"])
             actual = app.call("prepare",deckId=metadata["deckId"],model=model,precision=precision)
+            if scenario=="dynamic-dr-fsrs7" and any(card.get("states",{}).get("dynamicDesiredRetentionEnabled") for card in ref.get("cards",[])):
+                result["activeDynamicRetentionObserved"]=True
             with (work/"observations.jsonl").open("a") as trace:
                 trace.write(json.dumps({"step":step,"clock":millis,"reference":ref,"app":actual})+"\n")
             result["steps"] += 1
@@ -161,6 +163,8 @@ def compare_case(args, model, precision, mode, scenario):
             result["comparisons"]+=1
             if delta:
                 result["mismatches"].extend(delta[:30]);break
+        if scenario=="dynamic-dr-fsrs7" and not result.get("activeDynamicRetentionObserved"):
+            raise RuntimeError("Dynamic-retention fixture did not activate per-grade retention")
         reference.call("close");app.call("close")
     except Exception as error:
         result["error"]=str(error)
@@ -179,7 +183,7 @@ def main():
     parser.add_argument("--models",nargs="+",choices=list(MODELS),default=list(MODELS))
     parser.add_argument("--precisions",nargs="+",choices=["f32","int8","int4","cards_int4_notes_int8"],default=["f32","int8","int4","cards_int4_notes_int8"])
     parser.add_argument("--modes",nargs="+",choices=["instant","curve","both"],default=["instant","curve","both"])
-    parser.add_argument("--scenarios",nargs="+",choices=["standard","mixed","refresh","undo","redo","reopen","rollover","fsrs4","fsrs5","fsrs7","dynamic-dr","dynamic-replay","grade-order-off"],default=["standard","mixed","refresh","undo","redo","reopen","rollover"])
+    parser.add_argument("--scenarios",nargs="+",choices=["standard","mixed","refresh","undo","redo","reopen","rollover","fsrs4","fsrs5","fsrs7","dynamic-dr","dynamic-dr-fsrs7","dynamic-replay","grade-order-off"],default=["standard","mixed","refresh","undo","redo","reopen","rollover"])
     parser.add_argument("--steps",type=int,default=24)
     parser.add_argument("--app",type=Path,default=ROOT/".build/debug/AnkiComparisonDriver")
     parser.add_argument("--clock-library",type=Path,default=Path("/tmp/anki-comparison-clock.so"))
