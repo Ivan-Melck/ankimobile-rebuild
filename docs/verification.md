@@ -50,11 +50,10 @@ network namespace. The added regression reproduced stale candidates after
 incoming reviews and full download, then passed after clearing reviewer-local
 state on the fork's sync-change signal and full replacement. The existing FSRS-6
 fallback survives both operations. The
-[first iOS run](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40558532429)
-passed the iOS build, core/vector tests, separate two-client sync test and all
-nine UI tests at `463dbf3`. The
-[matrix-source iOS run](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40560840333)
-targets `4cb2621` and is tracked separately.
+[final iOS run](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/runs/40565026742)
+passed at source `db7314a998b705db47f50c27184d8497751b39eb`: **56 core tests**
+(four optional fixtures skipped), neural-vector checks, **both server sync
+tests**, the native iOS build and **all nine iPhone UI tests**, zero failures.
 
 The matrix ran at `4cb2621`; the subsequent sync-only cache invalidation is
 covered by the separate server regression. This establishes the named

@@ -35,6 +35,19 @@ the fork's `just`/uv/Rust prerequisites, and Swift. Build and compare with:
 scripts/compare-fork.sh --output /tmp/anki-rwkv-comparison.json
 ```
 
+To reproduce the full 840-case acceptance matrix recorded on 2026-10-27:
+
+```sh
+scripts/compare-fork.sh --jobs 8 --steps 24 \
+  --scenarios standard mixed refresh undo redo reopen rollover \
+    fsrs4 fsrs5 fsrs7 dynamic-dr dynamic-dr-fsrs7 dynamic-replay grade-order-off \
+  --output /tmp/anki-rwkv-comparison.json
+```
+
+The rollover case reopens both copies on the next scheduler day; continuous
+midnight UI transitions are a separate acceptance case. Dynamic replay uses
+two current presets, without complex historical preset-migration rules.
+
 The default matrix covers five models, four recurrent precisions, Instant,
 Curve and both together, and standard, mixed-preset, refresh-cadence,
 undo, redo, reopen and rollover fixtures. Additional scenarios cover FSRS
