@@ -1,0 +1,48 @@
+name: iOS Device IPA
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare build tools and pinned backend
+        run: |
+          brew install protobuf xcodegen
+          scripts/prepare-backend.sh
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: NativeEngine
+          shared-key: ios-device
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Archive and package unsigned iPhone/iPad app
+        run: scripts/build-ipa.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-device-ipa
+          path: |
+            build/ipa/*.ipa
+            build/ipa/BuildInfo.json
+            build/ipa/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-device-build-diagnostics
+          path: |
+            build/ipa/archive.log
+            build/ipa/DeviceArchive.xcresult
+            build/ipa/Flashcards.xcarchive/dSYMs
+          if-no-files-found: warn
+          retention-days: 14

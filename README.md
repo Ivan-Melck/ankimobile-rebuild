@@ -37,6 +37,10 @@ Select the `Flashcards` scheme and an iPhone/iPad simulator, then Run. For a phy
 
 [GitHub Actions](https://github.com/Ivan-Melck/ankimobile-rebuild/actions) builds and runs the native app on a hosted iPhone simulator. Each run uploads an `ios-simulator-results` artifact with screenshots, the `.xcresult` test bundle, generated Xcode project, build log, and simulator `.app`. A simulator `.app` cannot be installed on a physical iPhone.
 
+For a device IPA, manually run the [iOS Device IPA workflow](https://github.com/Ivan-Melck/ankimobile-rebuild/actions/workflows/ipa.yml) against the desired app commit. It archives a Release arm64 app for iPhone/iPad on a disposable hosted Mac, verifies its device platform and bundled models, and uploads `ios-device-ipa` for 30 days. The artifact includes the IPA, source/backend revisions, tool versions and SHA-256 checksum. **The IPA is unsigned and must be signed and provisioned before installation.** It cannot be installed directly or submitted to TestFlight as produced. This build uses the app's pinned backend; it does not update the Anki fork or rerun the simulator/compatibility suites.
+
+To reproduce on a Mac after the setup above, run `scripts/build-ipa.sh`. Outputs go under `build/ipa/`; move that directory aside before repeating a build. This does not recreate the Linux desktop-reference environment.
+
 ## Current collection path
 
 - Real Anki collections and `.colpkg` / `.apkg` imports into separate profiles, with a profile switcher and collection export including media.
